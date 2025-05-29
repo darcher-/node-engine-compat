@@ -14,7 +14,7 @@ labels:
     description: "A simple, remedial or mundane task"
     color: "d876e3"
   - name: "config"
-    description: "configurational settings"
+    description: "configuration settings"
     color: "ededed"
     files:
       - \**/*.json
