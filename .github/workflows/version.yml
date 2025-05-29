@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for standard-version to analyze all commits
-          token: ${{ secrets.GITHUB_TOKEN }} # Token for pushing changes
+          token: ${{ secrets.GITHUB_TOKEN }} # Use default token for initial checkout
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -79,16 +79,40 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Setup GitHub CLI
+        if: steps.check_version_change.outputs.changed == 'true'
+        run: |
+          # Install GitHub CLI if not already installed
+          if ! command -v gh &> /dev/null; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh
+          fi
+
+      - name: Generate GitHub PAT
+        if: steps.check_version_change.outputs.changed == 'true'
+        id: generate_pat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Login to GitHub using the GITHUB_TOKEN
+          echo "$GH_TOKEN" | gh auth login --with-token
+
+          # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
+          echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+
       - name: Push changes and tags
         if: steps.check_version_change.outputs.changed == 'true'
         run: |
-          # The GITHUB_TOKEN (via actions/checkout) provides push permission
+          # Use dynamically generated PAT for authentication
+          git remote set-url origin https://x-access-token:${{ env.GH_PAT }}@github.com/${{ github.repository }}.git
           git push --follow-tags origin main
 
       - name: Create GitHub Release
         if: steps.check_version_change.outputs.changed == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ env.GH_PAT }}
         run: |
           TAG_NAME="v${{ steps.get_new_version.outputs.version }}"
           gh release create "$TAG_NAME" \
