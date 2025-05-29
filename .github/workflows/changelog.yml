@@ -1,13 +1,9 @@
 name: Update Changelog on Merge
 
 on:
-  push:
-    branches:
-      - main # Only run when changes are pushed to main branch
   pull_request:
-    types: [closed]
     branches:
-      - dev
+      - main
 
 # Permissions needed to push the changelog commit and tags
 permissions:

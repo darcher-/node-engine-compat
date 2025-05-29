@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  push:
+  pull_request:
     branches:
-      - main # Adjust if your default/release branch is different (e.g., master)
+      - main
 
 jobs:
   release:

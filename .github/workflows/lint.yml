@@ -1,12 +1,10 @@
 name: Lint Code on Push and Pull Request
 
 on:
-  push:
-    branches:
-      - dev
   pull_request:
     branches:
       - dev
+      - main
 
 permissions:
   contents: write
