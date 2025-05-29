@@ -1,5 +1,10 @@
 # Node.js Compatibility Range Analyzer
 
+[![CodeQL Security Analysis](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml)
+[![Node.js CI](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml)
+[![Dependency Updates](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml)
+[![Demo Deployment](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml)
+
 A CLI tool to **analyze and aggregate Node.js version requirements** for your project and its direct dependencies. It reads the `engines.node` fields from your project's [`package.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json) and those of its direct dependencies (including devDependencies by default), then computes the intersection—helping you ensure your project runs on a compatible Node.js version.
 
 ---
@@ -11,6 +16,7 @@ A CLI tool to **analyze and aggregate Node.js version requirements** for your pr
 - **Supports JSON output** for CI/CD and automation.
 - **Flexible analysis:** include/exclude devDependencies.
 - **Verbose logging** for troubleshooting.
+- **Enhanced security** with automated CodeQL scanning.
 
 ---
 
@@ -261,83 +267,66 @@ Tool exits with code 1.
 
 ## 🤖 CI/CD Automation
 
-### GitHub Actions PAT Automation
+This project features a streamlined CI/CD setup with optimized GitHub Actions workflows for development efficiency and security.
 
-This project's workflows include automated PAT (Personal Access Token) generation for GitHub Actions. This allows the workflows to:
+### Automated Workflows
 
-1. Make git commits
-2. Push changes
-3. Create pull requests
-4. Create releases
+The following workflows have been optimized for clarity and performance:
 
-Without requiring a manually created PAT secret.
+| Workflow | Description |
+| -------- | ----------- |
+| **CodeQL Security Analysis** | Advanced code security scanning with customized queries |
+| **Node.js CI** | Tests across multiple Node.js versions (18.x, 20.x, 22.x) |
+| **Issue Summarizer** | Automatic AI-powered summarization of new issues |
+| **Demo Deployment** | Deploys demo content to GitHub Pages |
+| **Dependency Updates** | Automated dependency management with intelligent versioning strategies |
+| **Pull Request Labeler** | Automated categorization of PRs based on content |
+| **Stale Issue Management** | Handles inactive issues and PRs after 60 days |
 
-#### How it works
+### Enhanced Dependabot Configuration
 
-1. Workflows use the GitHub CLI to authenticate with the default `GITHUB_TOKEN`
-2. The token is stored as an environment variable `GH_PAT` for use in the workflow
-3. All git operations and API calls use this dynamically generated token
+The project uses an enhanced Dependabot configuration with:
 
-Example implementation:
+- Weekly npm dependency scanning
+- Monthly GitHub Actions workflow updates
+- Intelligent versioning strategy
+- Customized PR limits and labels
+- Scoped commit messages with prefixes
+
+### GitHub Actions Token Usage
+
+This project uses GitHub's built-in token system for authentication:
 
 ```yaml
-- name: Setup GitHub CLI
-  run: |
-    # Install GitHub CLI if not already installed
-    if ! command -v gh &> /dev/null; then
-      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-      sudo apt update
-      sudo apt install gh
-    fi
-
-- name: Generate GitHub PAT
+- name: Perform GitHub API operations
   env:
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   run: |
-    # Login to GitHub using the GITHUB_TOKEN
-    echo "$GH_TOKEN" | gh auth login --with-token
-
-    # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
-    echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+    gh api repos/{owner}/{repo}/issues
 ```
 
-> **Note:** The default `GITHUB_TOKEN` has some limitations compared to a classic PAT, particularly around triggering subsequent workflows. If you need additional permissions, adjust the workflow's `permissions` section.
+> **Note:** The default `GITHUB_TOKEN` has carefully configured permissions in each workflow to follow the principle of least privilege.
 
-## 🔄 CI/CD Workflows
+## 🔄 Streamlined Workflows
 
-This project includes several GitHub Actions workflows to automate common development tasks:
+The project maintains the following optimized workflows:
 
-### Core Workflows
-
-| Workflow | Description |
-| -------- | ----------- |
-| **Lint Project** | Runs linters on the codebase and automatically fixes issues |
-| **Format Syntax** | Formats code using Prettier to maintain consistent style |
-| **Update Version** | Updates version numbers and generates a changelog |
-| **Update History** | Updates the project history and release notes |
-| **Verify Actions** | Checks and updates GitHub Actions workflows |
-
-### Enhanced PR Workflows
+### Core Development Workflows
 
 | Workflow | Description |
 | -------- | ----------- |
-| **PR Checks** | Validates PR title, branch name, and description format |
-| **PR Feedback** | Provides test results and build status on PRs |
-| **PR Auto-Update** | Automatically updates PRs with necessary file changes |
-| **PR Summary** | Aggregates status of all workflow runs for a PR |
-| **Security Scan** | Scans dependencies for vulnerabilities |
-| **Dependency Updates** | Automatically creates PRs for dependency updates |
+| **Node.js CI** | Runs tests across Node.js 18.x, 20.x, and 22.x versions |
+| **CodeQL Security Analysis** | Performs advanced security scanning with extended queries |
+| **Demo Page Deployment** | Automatically publishes demo content to GitHub Pages |
 
-### Authentication Features
+### Maintenance Workflows
 
-The workflows include enhanced authentication for PR integration:
-
-- Automatic token handling for PR interactions
-- Permission verification before Git operations
-- Error handling for authentication failures
-- Direct commits to PR branches for immediate fixes
-- Detailed PR comments with actionable feedback
+| Workflow | Description |
+| -------- | ----------- |
+| **Dependabot** | Manages npm and GitHub Actions dependencies |
+| **Labeler** | Automatically categorizes PRs based on file changes |
+| **Stale Issue Management** | Maintains repository cleanliness |
+| **Issue Summarizer** | Provides AI-generated summaries of new issues |
 
 ---
 

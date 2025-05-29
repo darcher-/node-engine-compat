@@ -1,11 +1,11 @@
-name: Summarize new issues
+name: Issue Summarizer
 
 on:
   issues:
     types: [opened]
 
 jobs:
-  summary:
+  summarize:
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run AI inference
+      - name: Generate AI summary
         id: inference
         uses: actions/ai-inference@v1
         with:
@@ -25,7 +25,7 @@ jobs:
             Title: ${{ github.event.issue.title }}
             Body: ${{ github.event.issue.body }}
 
-      - name: Comment with AI summary
+      - name: Add summary comment
         run: |
           gh issue comment $ISSUE_NUMBER --body '${{ steps.inference.outputs.response }}'
         env:
