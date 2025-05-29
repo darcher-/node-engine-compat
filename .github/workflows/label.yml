@@ -6,17 +6,26 @@
 # https://github.com/actions/labeler
 
 name: Labeler
-on: [pull_request_target, pull_request]
+on:
+  - push
+  - pull_request_target
+  - pull_request
 
 jobs:
   label:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
       pull-requests: write
-
     steps:
-    - uses: actions/labeler@v4
+    - name: "Setup label references"
+      uses: actions/checkout@v4
+    - name: "Map to project labels"
+      id: label-the-PR
+      uses: actions/labeler@v5
       with:
+        dot: true
+        sync-labels: true
+        configuration-path: .github/labeler.yml
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
