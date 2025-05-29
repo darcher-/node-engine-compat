@@ -1,0 +1,47 @@
+name: Lint Code on Merge
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18.x"
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: |+
+          npm -v
+          node -v
+          npm install
+
+      - name: Install linters
+        run: |+
+          npm install -g markdownlint-cli axe-core htmlhint stylelint eslint
+
+      - name: Run linters
+        run: |+
+          markdownlint "**/*.md"
+          axe --fail-fast --wcag-version 2.2 --rule color-contrast,button-name,link-name,document-title,html-has-lang,image-alt --standard AA --tags wcag2aa
+          htmlhint "**/*.html"
+          stylelint "**/*.css"
+          eslint "**/*.{js,json,yml}" --fix
