@@ -101,10 +101,10 @@
   "javascript.validate.enable": true,
   "js/ts.implicitProjectConfig.checkJs": true,
   "js/ts.implicitProjectConfig.experimentalDecorators": false,
-  "js/ts.implicitProjectConfig.module": "CommonJS",
+  "js/ts.implicitProjectConfig.module": "ESNext",
   "js/ts.implicitProjectConfig.strictFunctionTypes": true,
   "js/ts.implicitProjectConfig.strictNullChecks": true,
-  "js/ts.implicitProjectConfig.target": "ES6",
+  "js/ts.implicitProjectConfig.target": "ESNext",
   "json.format.enable": true,
   "markdownlint.config": {
     "MD033": false,

@@ -1,0 +1,139 @@
+name: Update Files
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-update:
+    name: Auto-Update PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Example auto-updates that might be useful
+      - name: Update package-lock.json
+        id: update_lockfile
+        run: |
+          # Fix any lockfile inconsistencies
+          npm install --package-lock-only
+          if [[ -n $(git status --porcelain package-lock.json) ]]; then
+            echo "::set-output name=has_changes::true"
+          else
+            echo "::set-output name=has_changes::false"
+          fi
+
+      - name: Update changelog references
+        id: update_changelog
+        run: |
+          # If PR includes version bump, update CHANGELOG.md references
+          if [[ -f CHANGELOG.md ]] && grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+            if [[ -n "$VERSION" ]]; then
+              TODAY=$(date +'%Y-%m-%d')
+              sed -i "s/## \[Unreleased\]/## \[${VERSION}\] - ${TODAY}/" CHANGELOG.md
+              if [[ -n $(git status --porcelain CHANGELOG.md) ]]; then
+                echo "::set-output name=has_changes::true"
+              else
+                echo "::set-output name=has_changes::false"
+              fi
+            else
+              echo "::set-output name=has_changes::false"
+            fi
+          else
+            echo "::set-output name=has_changes::false"
+          fi
+
+      - name: Generate .nvmrc if missing
+        id: update_nvmrc
+        run: |
+          if [[ ! -f .nvmrc ]]; then
+            NODE_VERSION=$(node -p "require('./package.json').engines?.node" 2>/dev/null || echo "")
+            if [[ -n "$NODE_VERSION" ]]; then
+              echo "$NODE_VERSION" > .nvmrc
+              echo "::set-output name=has_changes::true"
+            else
+              echo "16" > .nvmrc  # Use a sensible default
+              echo "::set-output name=has_changes::true"
+            fi
+          else
+            echo "::set-output name=has_changes::false"
+          fi
+
+      - name: Setup GitHub CLI
+        if: steps.update_lockfile.outputs.has_changes == 'true' || steps.update_changelog.outputs.has_changes == 'true' || steps.update_nvmrc.outputs.has_changes == 'true'
+        run: |
+          # Install GitHub CLI if not already installed
+          if ! command -v gh &> /dev/null; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh
+          fi
+
+      - name: Generate GitHub PAT
+        if: steps.update_lockfile.outputs.has_changes == 'true' || steps.update_changelog.outputs.has_changes == 'true' || steps.update_nvmrc.outputs.has_changes == 'true'
+        id: generate_pat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "GH_TOKEN is not set. Please check the secrets configuration." >&2
+            exit 1
+          fi
+
+          # Login to GitHub using the GITHUB_TOKEN
+          echo "$GH_TOKEN" | gh auth login --with-token || { echo "Failed to authenticate with GitHub CLI." >&2; exit 1; }
+
+          # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
+          echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+
+      - name: Commit and push changes
+        if: steps.update_lockfile.outputs.has_changes == 'true' || steps.update_changelog.outputs.has_changes == 'true' || steps.update_nvmrc.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          COMMIT_MESSAGE="chore: auto-update PR files"
+
+          if [[ "${{ steps.update_lockfile.outputs.has_changes }}" == "true" ]]; then
+            git add package-lock.json
+            COMMIT_MESSAGE="${COMMIT_MESSAGE} - package-lock.json"
+          fi
+
+          if [[ "${{ steps.update_changelog.outputs.has_changes }}" == "true" ]]; then
+            git add CHANGELOG.md
+            COMMIT_MESSAGE="${COMMIT_MESSAGE} - CHANGELOG.md"
+          fi
+
+          if [[ "${{ steps.update_nvmrc.outputs.has_changes }}" == "true" ]]; then
+            git add .nvmrc
+            COMMIT_MESSAGE="${COMMIT_MESSAGE} - .nvmrc"
+          fi
+
+          git commit -m "$COMMIT_MESSAGE"
+
+          # Push directly to the PR branch using the token
+          git remote set-url origin https://x-access-token:${{ env.GH_PAT }}@github.com/${{ github.repository }}.git
+          git push origin HEAD:${{ github.head_ref }}

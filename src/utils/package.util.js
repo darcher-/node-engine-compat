@@ -1,6 +1,6 @@
-const fs = require('fs')
-const path = require('path')
-const logger = require('../services/logger.js')
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import logger from '../services/logger.js'
 
 /**
  * Creates a unified list of all dependencies (dependencies and optionally devDependencies).
@@ -34,9 +34,9 @@ function getDepPkgJson(depName, projectPath)
   if (typeof depName !== 'string' || typeof projectPath !== 'string') {
     throw new TypeError('depName and projectPath must be strings')
   }
-  const depPath = path.join(projectPath, 'node_modules', depName, 'package.json')
+  const depPath = join(projectPath, 'node_modules', depName, 'package.json')
   try {
-    const fileContent = fs.readFileSync(depPath, 'utf8')
+    const fileContent = readFileSync(depPath, 'utf8')
     return JSON.parse(fileContent)
   } catch (error) {
     logger.warn('errors.readParseDependencyPackageJson', {
@@ -59,7 +59,7 @@ function getRootPkgJson(projectPkgPath)
     throw new TypeError('projectPkgPath must be a string')
   }
   try {
-    const rootPkgContent = fs.readFileSync(projectPkgPath, 'utf8')
+    const rootPkgContent = readFileSync(projectPkgPath, 'utf8')
     const parsed = JSON.parse(rootPkgContent)
     if (typeof parsed !== 'object' || parsed === null) {
       throw new Error('Parsed package.json is not an object')
@@ -74,7 +74,7 @@ function getRootPkgJson(projectPkgPath)
   }
 }
 
-module.exports = {
+export default {
   getDeps,
   getDepPkgJson,
   getRootPkgJson
