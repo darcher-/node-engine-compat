@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "DavidAnson.vscode-markdownlint",
+    "PascalReitermann93.vscode-yaml-sort",
+    "pranaygp.vscode-css-peek",
+    "redhat.vscode-yaml",
+    "richie5um2.vscode-sort-json"
+  ]
+}

@@ -1,0 +1,60 @@
+# Suggested code may be subject to a license. Learn more: ~LicenseLog:3703182081.
+# Suggested code may be subject to a license. Learn more: ~LicenseLog:518334727.
+name: Lint Code on Merge
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "lts/*"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run linters
+        run: |
+          npx markdownlint "**/*.md"
+          npx axe --fail-fast --wcag-version 2.2 --rule color-contrast,button-name,link-name,document-title,html-has-lang,image-alt --standard AA --tags wcag2aa
+          npx htmlhint "**/*.html"
+          npx stylelint "**/*.css"
+          npx eslint "**/*.{js,json,yml}" --fix
+
+      - name: Lint Commit Message
+        shell: bash
+        run: |
+          # Create a temporary commitlint.config.js file before running the lint command
+          echo "$COMMITLINT_CONFIG" > commitlint.config.js
+
+          # Install commitlint globally
+          npm install -g @commitlint/cli @commitlint/config-conventional
+
+          # Create a temporary commit message file for linting
+          echo "${{ github.event.commits[0].message }}" > commit_message.txt
+
+          # Lint the commit message using a predefined configuration
+          commitlint --config ./commitlint.config.js --edit commit_message.txt
+
+        # Define the commitlint configuration within the workflow file
+        env:
+          COMMITLINT_CONFIG: |
+            module.exports = {
+              extends: ['@commitlint/config-conventional'],
+              rules: {
+                // Add custom rules here if needed
+                // e.g. 'subject-max-length': [2, 'always', 72],
+              },
+            };
