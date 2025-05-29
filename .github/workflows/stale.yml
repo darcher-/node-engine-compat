@@ -2,7 +2,7 @@ name: State Checks
 
 on:
   schedule:
-    - cron: '39 5 * * 1' # Run weekly on Mondays at 5:39 AM
+    - cron: "39 5 * * 1" # Run weekly on Mondays at 5:39 AM
 
 jobs:
   stale:
@@ -12,12 +12,12 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/stale@v9
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'This issue has been marked as stale due to inactivity. Please add a comment or update the issue to keep it open.'
-        stale-pr-message: 'This pull request has been marked as stale due to inactivity. Please update it or leave a comment to keep it open.'
-        stale-issue-label: 'no-issue-activity'
-        stale-pr-label: 'no-pr-activity'
-        days-before-stale: 60
-        days-before-close: 7
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: "This issue has been marked as stale due to inactivity. Please add a comment or update the issue to keep it open."
+          stale-pr-message: "This pull request has been marked as stale due to inactivity. Please update it or leave a comment to keep it open."
+          stale-issue-label: "no-issue-activity"
+          stale-pr-label: "no-pr-activity"
+          days-before-stale: 60
+          days-before-close: 7

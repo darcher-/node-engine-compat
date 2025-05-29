@@ -8,7 +8,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '39 5 * * 1' # Run weekly on Mondays at 5:39 AM
+    - cron: "39 5 * * 1" # Run weekly on Mondays at 5:39 AM
 
 jobs:
   analyze:
@@ -24,9 +24,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: javascript-typescript
-          build-mode: manual
-
+          - language: javascript-typescript
+            build-mode: manual
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: "16"
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

@@ -7,7 +7,7 @@ on:
       - main
   push:
   schedule:
-    - cron: '39 5 * * 1' # Run weekly on Mondays at 5:39 AM
+    - cron: "39 5 * * 1" # Run weekly on Mondays at 5:39 AM
 
 jobs:
   label:
@@ -17,12 +17,12 @@ jobs:
       id-token: write
       pull-requests: write
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    - name: Apply project labels
-      uses: actions/labeler@v5
-      with:
-        dot: true
-        sync-labels: true
-        configuration-path: .github/labeler.yml
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Apply project labels
+        uses: actions/labeler@v5
+        with:
+          dot: true
+          sync-labels: true
+          configuration-path: .github/labeler.yml
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"

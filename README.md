@@ -1,10 +1,5 @@
 # Node.js Compatibility Range Analyzer
 
-[![Security Analysis](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml)
-[![NodeJS Stability](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml)
-[![Dependency Checks](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml)
-[![Release Deployment](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml)
-
 A CLI tool to **analyze and aggregate Node.js version requirements** for your project and its direct dependencies. It reads the `engines.node` fields from your project's [`package.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json) and those of its direct dependencies (including devDependencies by default), then computes the intersection—helping you ensure your project runs on a compatible Node.js version.
 
 ---
