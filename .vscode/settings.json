@@ -8,7 +8,7 @@
       "source.fixAll": "always",
       "source.fixAll.yaml-sort": "explicit"
     },
-    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.defaultFormatter": "redhat.vscode-yaml"
   },
   "[css]": {
     "editor.codeActionsOnSave": {

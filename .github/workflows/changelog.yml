@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - main
+      - dev
 
 # Permissions needed to push the changelog commit and tags
 permissions:

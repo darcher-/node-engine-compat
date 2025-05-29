@@ -1,4 +1,4 @@
-name: Lint Code on Merge
+name: Lint Code on Push and Pull Request
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - dev
   pull_request:
     branches:
-      - main
+      - dev
 
 permissions:
   contents: write
