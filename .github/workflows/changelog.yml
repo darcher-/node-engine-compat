@@ -1,4 +1,4 @@
-name: Update Changelog on Merge
+name: Update History
 
 on:
   pull_request:

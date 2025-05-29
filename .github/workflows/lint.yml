@@ -1,4 +1,4 @@
-name: Lint Code on Push and Pull Request
+name: Lint Project
 
 on:
   pull_request:

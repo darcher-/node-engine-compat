@@ -1,4 +1,4 @@
-name: Code Formatting on Merge
+name: Format Syntax
 
 on:
   pull_request:
