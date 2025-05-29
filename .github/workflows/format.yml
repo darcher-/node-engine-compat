@@ -16,12 +16,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "18.x"
-      - name: Install Prettier
-        run: npm install --global prettier
-      - name: Format files
-        run: prettier --write "**/*.{js,css,html,yml,json,md}"
-      - name: Commit changes
-        uses: stefanprodan/commit-changes@v2
-        with:
-          commit_message: Format code with Prettier
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Check formatting
+        run: npx prettier --check "**/*.{js,css,html,yml,json,md}"
