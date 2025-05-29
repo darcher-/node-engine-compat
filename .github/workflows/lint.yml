@@ -1,5 +1,4 @@
-name: Lint Code on Push and Pull Request
-
+name: Lint Code
 on:
   push:
     branches:
@@ -7,22 +6,18 @@ on:
   pull_request:
     branches:
       - dev
-
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "18.x"
-
       - name: Install dependencies
         run: npm install
-
       - name: Run linters sequentially
         run: |
           npx markdownlint '**/*.md'
@@ -30,3 +25,7 @@ jobs:
           npx stylelint '**/*.css'
           npx eslint '**/*.{js,json,yml}'
           npx axe --fail-fast --wcag-version 2.2 --rule color-contrast,button-name,link-name,document-title,html-has-lang,image-alt --standard AA --tags wcag2aa demo/index.html
+      - uses: stefanprodan/commitpr@v1
+        with:
+          message: "applies linter corrections"
+          create_pr: false

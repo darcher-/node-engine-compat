@@ -1,6 +1,5 @@
 # Suggested code may be subject to a license. Learn more: ~LicenseLog:2664196719.
-name: Format Code on Merge
-
+name: Format Code
 on:
   push:
     branches:
@@ -8,7 +7,6 @@ on:
   pull_request:
     branches:
       - dev
-
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -21,3 +19,9 @@ jobs:
         run: npm install
       - name: Check formatting
         run: npx prettier --check "**/*.{js,css,html,yml,json,md}"
+      - name: Fix formatting
+        run: npx prettier --write "**/*.{js,css,html,yml,json,md}"
+      - uses: stefanprodan/commitpr@v1
+        with:
+          message: "applies syntax format corrections"
+          create_pr: false
