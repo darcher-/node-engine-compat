@@ -153,3 +153,13 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "needs-attention"
         env:
           GITHUB_TOKEN: ${{ env.GH_PAT }}
+      - name: Setup GitHub CLI Authentication
+        if: steps.validate_title.outputs.valid == 'false' || steps.validate_branch.outputs.valid == 'false' || steps.validate_description.outputs.valid == 'false'
+        run: |
+          # Clear GH_TOKEN from the environment
+          unset GH_TOKEN
+
+          # Install GitHub CLI if not already installed
+          if ! command -v gh &> /dev/null; then
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --

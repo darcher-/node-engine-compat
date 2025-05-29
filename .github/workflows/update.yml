@@ -98,8 +98,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "GH_TOKEN is not set. Please check the secrets configuration." >&2
+            exit 1
+          fi
+
           # Login to GitHub using the GITHUB_TOKEN
-          echo "$GH_TOKEN" | gh auth login --with-token
+          echo "$GH_TOKEN" | gh auth login --with-token || { echo "Failed to authenticate with GitHub CLI." >&2; exit 1; }
 
           # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
           echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
