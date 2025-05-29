@@ -1,0 +1,133 @@
+name: Workflow Files Checker
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  schedule:
+    - cron: "0 0 * * 0" # Run weekly on Sundays
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+
+      - name: Install actionlint
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          sudo mv ./actionlint /usr/local/bin/
+
+      - name: Run actionlint
+        id: actionlint
+        continue-on-error: true
+        run: |
+          RESULTS=$(actionlint -format '{{range $err := .}}::error file={{$err.Filepath}},line={{$err.Line}},col={{$err.Column}}::{{$err.Message}}%0A{{end}}')
+          echo "$RESULTS"
+          echo "::set-output name=results::$RESULTS"
+          if [ -n "$RESULTS" ]; then
+            echo "::set-output name=has_issues::true"
+          else
+            echo "::set-output name=has_issues::false"
+          fi
+
+      - name: Check for outdated actions
+        id: outdated_actions
+        continue-on-error: true
+        run: |
+          ISSUES=""
+
+          # Check for outdated actions/checkout
+          if grep -r "uses: actions/checkout@v[1-3]" .github/workflows; then
+            ISSUES="${ISSUES}Found outdated actions/checkout, should use v4\n"
+          fi
+
+          # Check for outdated actions/setup-node
+          if grep -r "uses: actions/setup-node@v[1-3]" .github/workflows; then
+            ISSUES="${ISSUES}Found outdated actions/setup-node, should use v4\n"
+          fi
+
+          # Check for missing permissions
+          for file in .github/workflows/*.yml; do
+            if ! grep -q "permissions:" "$file"; then
+              ISSUES="${ISSUES}Missing permissions in $file\n"
+            fi
+          done
+
+          echo -e "$ISSUES"
+
+          if [ -n "$ISSUES" ]; then
+            echo "::set-output name=has_issues::true"
+            echo "::set-output name=issues::$ISSUES"
+          else
+            echo "::set-output name=has_issues::false"
+          fi
+
+      - name: Check for necessary fixes
+        id: fix_check
+        run: |
+          if [[ "${{ steps.actionlint.outputs.has_issues }}" == "true" || "${{ steps.outdated_actions.outputs.has_issues }}" == "true" ]]; then
+            echo "::set-output name=needs_fixing::true"
+          else
+            echo "::set-output name=needs_fixing::false"
+          fi
+
+      - name: Fix outdated actions
+        if: steps.fix_check.outputs.needs_fixing == 'true'
+        run: |
+          # Update outdated actions/checkout
+          find .github/workflows -type f -name "*.yml" -exec sed -i 's/uses: actions\/checkout@v[1-3]/uses: actions\/checkout@v4/g' {} \;
+
+          # Update outdated actions/setup-node
+          find .github/workflows -type f -name "*.yml" -exec sed -i 's/uses: actions\/setup-node@v[1-3]/uses: actions\/setup-node@v4/g' {} \;
+
+          # Add missing permissions if needed
+          for file in .github/workflows/*.yml; do
+            if ! grep -q "permissions:" "$file"; then
+              # Insert permissions after 'on:' section
+              awk '/^on:/{p=1} /^[a-zA-Z]/{if(p==1){print "\npermissions:\n  contents: write\n  pull-requests: write\n"; p=0}} {print}' "$file" > "$file.new"
+              mv "$file.new" "$file"
+            fi
+          done
+
+      - name: Commit and push fixes
+        if: steps.fix_check.outputs.needs_fixing == 'true' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/*.yml
+          git diff --quiet && git diff --staged --quiet || git commit -m "Fix GitHub Actions workflow issues"
+          git push
+
+      - name: Create PR with fixes
+        if: steps.fix_check.outputs.needs_fixing == 'true' && github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Fix GitHub Actions workflow issues
+          title: Fix GitHub Actions workflow issues
+          body: |
+            This PR fixes issues in GitHub Actions workflow files:
+
+            ${{ steps.actionlint.outputs.results }}
+            ${{ steps.outdated_actions.outputs.issues }}
+
+            Changes were made automatically by the workflow-checker.
+          branch: fix-workflows-${{ github.head_ref || github.ref_name }}
+          base: ${{ github.head_ref || github.ref_name }}

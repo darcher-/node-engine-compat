@@ -7,6 +7,9 @@
   "dependencies": {
     "yargs": "^17.7.2"
   },
+  "devDependencies": {
+    "standard-version": "^9.5.0"
+  },
   "description": "A CLI library to check the defined node version engines of the project and its dependencies",
   "engines": {
     "node": ">=12",
@@ -41,7 +44,8 @@
   },
   "repository": "git@github.com:darcher-/nodeVersionRange.git",
   "scripts": {
-    "start": "node ./src/index.js"
+    "start": "node ./src/index.js",
+    "release": "standard-version"
   },
   "type": "module",
   "version": "1.1.0"

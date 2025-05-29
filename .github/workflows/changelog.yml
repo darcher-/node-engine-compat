@@ -3,36 +3,54 @@ name: Update Changelog on Merge
 on:
   push:
     branches:
-      - dev
+      - main # Only run when changes are pushed to main branch
   pull_request:
+    types: [closed]
     branches:
       - main
 
 # Permissions needed to push the changelog commit and tags
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-changelog:
     name: Update Changelog
-    # Ensure this only runs on the specified repository, not on forks
-    if: github.repository == 'idx.google.com/nodeversionrange-54636892'
+    # Only run on merged PRs or direct pushes to main
+    if: github.repository == 'darcher-/nodeVersionRange' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true))
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required for standard-version to analyze all commit history for versioning
-          token: ${{ secrets.GITHUB_TOKEN }} # Or a PAT if GITHUB_TOKEN lacks permission for protected main or tag creation
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc" # Or specify directly: node-version: '20'
+          node-version-file: ".nvmrc" # Using the updated .nvmrc file
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci # Ensure standard-version (or similar) is a devDependency
+        run: npm ci
+
+      - name: Verify standard-version is installed
+        id: check_deps
+        run: |
+          if ! npm list -g standard-version &>/dev/null && ! npm list standard-version &>/dev/null; then
+            echo "::set-output name=missing_deps::true"
+            echo "standard-version is not installed"
+          else
+            echo "::set-output name=missing_deps::false"
+            echo "standard-version is installed"
+          fi
+
+      - name: Install missing dependencies
+        if: steps.check_deps.outputs.missing_deps == 'true'
+        run: |
+          npm install --save-dev standard-version
+          echo "Added standard-version to devDependencies"
 
       - name: Configure Git user
         run: |
@@ -40,23 +58,29 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Run changelog generation and version bump
+        id: changelog
         run: |
-          # This command assumes 'standard-version' is used and configured.
-          # It will typically:
-          # 1. Determine the new version based on commit messages.
-          # 2. Update package.json and package-lock.json with the new version.
-          # 3. Generate/update CHANGELOG.md.
-          # 4. Create a commit with these changes.
-          # 5. Create a git tag for the new version.
-          npm run release # Or: npx standard-version
-        # env:
-        # If your 'main' branch is protected and requires a PAT to push or create tags:
-        # GITHUB_TOKEN: ${{ secrets.YOUR_PAT_WITH_REPO_SCOPE }}
-        # By default, the GITHUB_TOKEN provided to the action might have sufficient rights
-        # if your branch protection rules aren't too strict.
+          npm run release || (echo "::set-output name=failed::true" && exit 1)
+          echo "::set-output name=failed::false"
+
+      - name: Commit package.json changes if needed
+        if: steps.changelog.outputs.failed == 'true'
+        run: |
+          git add package.json package-lock.json
+          git diff --staged --quiet || git commit -m "Update dependencies for changelog generation"
+          git push
+
+      - name: Retry changelog generation
+        if: steps.changelog.outputs.failed == 'true'
+        run: npm run release
 
       - name: Push changelog changes and tags
         run: git push --follow-tags origin main
-        # env:
-        # Same as above, if a PAT is needed for pushing to a protected main branch.
-        # GITHUB_TOKEN: ${{ secrets.YOUR_PAT_WITH_REPO_SCOPE }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          tag_name: v$(node -p "require('./package.json').version")
+          name: Release v$(node -p "require('./package.json').version")
+          body_path: CHANGELOG.md

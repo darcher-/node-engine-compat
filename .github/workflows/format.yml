@@ -1,4 +1,3 @@
-# Suggested code may be subject to a license. Learn more: ~LicenseLog:2664196719.
 name: Code Formatting on Merge
 
 on:
@@ -9,19 +8,65 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "18.x"
+          cache: 'npm'
+
       - name: Install Prettier
         run: npm install --global prettier
+
       - name: Format files
-        run: prettier --write "**/*.{js,css,html,yml,json,md}"
+        id: format
+        run: |
+          prettier --write "**/*.{js,css,html,yml,json,md}"
+          echo "::set-output name=format_status::$?"
+
+      - name: Check for formatting changes
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "::set-output name=has_changes::true"
+            echo "Formatting changes were made"
+          else
+            echo "::set-output name=has_changes::false"
+            echo "No formatting changes needed"
+          fi
+
       - name: Commit changes
-        uses: stefanprodan/commit-changes@v2
+        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Format code with Prettier"
+          git push
+
+      - name: Create PR with formatting changes
+        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v5
         with:
-          commit_message: Format code with Prettier
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Format code with Prettier
+          title: Format code with Prettier
+          body: |
+            This PR applies formatting changes with Prettier.
+
+            Changes were made by the formatting workflow.
+          branch: format-${{ github.head_ref }}
+          base: ${{ github.head_ref }}
