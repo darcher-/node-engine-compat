@@ -13,7 +13,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  # workflows: write
 
 jobs:
   update-changelog:
@@ -26,6 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required for standard-version to analyze all commit history for versioning
+          token: ${{ secrets.WORKFLOW_TOKEN }} # Use a PAT with proper permissions
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -58,11 +58,41 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Verify Permissions
+        id: verify_permissions
+        run: |
+          # Install GitHub CLI if not already available
+          if ! command -v gh &> /dev/null; then
+            echo "Installing GitHub CLI..."
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh
+          fi
+
+          # Check if token has workflows permission
+          echo "Checking for workflows permission..."
+          if gh api /installation/repositories &>/dev/null; then
+            echo "::output name=has_workflows_permission::true"
+            echo "Token has sufficient permissions"
+          else
+            echo "::output name=has_workflows_permission::false"
+            echo "Token may lack workflows permission - will exclude workflow files"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+
       - name: Run changelog generation and version bump
         id: changelog
         run: |
           npm run release || (echo "::output name=failed::true" && exit 1)
           echo "::output name=failed::false"
+
+      - name: Exclude workflow files if needed
+        if: steps.verify_permissions.outputs.has_workflows_permission != 'true'
+        run: |
+          echo "Excluding workflow files from commit due to permission restrictions"
+          git reset HEAD .github/workflows/
 
       - name: Commit package.json changes if needed
         if: steps.changelog.outputs.failed == 'true'
@@ -77,7 +107,13 @@ jobs:
 
       - name: Push changelog changes and tags
         run: |
-          # Use a token with workflows permission
+          # Exclude workflow files if we don't have permission
+          if [[ "${{ steps.verify_permissions.outputs.has_workflows_permission }}" != "true" ]]; then
+            echo "Excluding workflow files from push due to permission restrictions"
+            git reset HEAD .github/workflows/
+          fi
+
+          # Use a PAT with proper permissions
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           git push --follow-tags origin main
         env:
