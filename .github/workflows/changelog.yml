@@ -13,6 +13,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # workflows: write
 
 jobs:
   update-changelog:
@@ -39,10 +40,10 @@ jobs:
         id: check_deps
         run: |
           if ! npm list -g standard-version &>/dev/null && ! npm list standard-version &>/dev/null; then
-            echo "::set-output name=missing_deps::true"
+            echo "::output name=missing_deps::true"
             echo "standard-version is not installed"
           else
-            echo "::set-output name=missing_deps::false"
+            echo "::output name=missing_deps::false"
             echo "standard-version is installed"
           fi
 
@@ -60,8 +61,8 @@ jobs:
       - name: Run changelog generation and version bump
         id: changelog
         run: |
-          npm run release || (echo "::set-output name=failed::true" && exit 1)
-          echo "::set-output name=failed::false"
+          npm run release || (echo "::output name=failed::true" && exit 1)
+          echo "::output name=failed::false"
 
       - name: Commit package.json changes if needed
         if: steps.changelog.outputs.failed == 'true'
@@ -75,7 +76,12 @@ jobs:
         run: npm run release
 
       - name: Push changelog changes and tags
-        run: git push --follow-tags origin main
+        run: |
+          # Use a token with workflows permission
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git push --follow-tags origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -84,3 +90,5 @@ jobs:
           tag_name: v$(node -p "require('./package.json').version")
           name: Release v$(node -p "require('./package.json').version")
           body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

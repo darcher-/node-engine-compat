@@ -40,6 +40,17 @@ jobs:
         id: get_current_version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
+      - name: Check if standard-version is installed
+        id: check_deps
+        run: |
+          if ! npm list -g standard-version &>/dev/null && ! npm list standard-version &>/dev/null; then
+            echo "::output name=missing_deps::true"
+            echo "standard-version is not installed"
+          else
+            echo "::output name=missing_deps::false"
+            echo "standard-version is installed"
+          fi
+
       - name: Run standard-version
         id: run_standard_version
         # This executes the "release" script from your package.json: "standard-version"
