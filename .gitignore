@@ -1,12 +1,9 @@
-# files
 *.log
 *.tmp
 .DS_Store
 .env
-package-lock.json
-
-# folders
 build/
 coverage/
 dist/
 node_modules/
+package-lock.json
