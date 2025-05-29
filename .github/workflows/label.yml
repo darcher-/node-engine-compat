@@ -9,6 +9,7 @@ name: Labeler
 on:
   - push
   - pull_request_target
+  - pull_request
 
 jobs:
   label:
