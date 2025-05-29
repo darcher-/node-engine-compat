@@ -95,6 +95,7 @@
     "start": "node ./src/index.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
+  "source": "src/demo/index.html",
   "type": "module",
   "version": "1.1.0"
 }
