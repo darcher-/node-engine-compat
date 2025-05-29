@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [ "src/*" ],
+      "@types/*": [ "node_modules/@types/*" ]
+    },
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "es6",
+    "module": "commonjs",
+    "lib": [ "es6", "dom" ],
+    "allowJs": true,
+    "checkJs": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*",
+    "node_modules/@types/node/index.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "test",
+    "**/*.spec.*",
+    "**/*.test.*"
+  ],
+  "typeAcquisition": {
+    "enable": true,
+    "include": [ "node" ]
+  }
+}
