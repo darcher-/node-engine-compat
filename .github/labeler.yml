@@ -1,0 +1,62 @@
+labels:
+  - name: "automation"
+    description: "Pull requests that update GitHub Actions code"
+    color: "006b75"
+    files:
+      - .github/workflows/*
+  - name: "blocked"
+    description: "Effort on hold"
+    color: "b60205"
+  - name: "bug"
+    description: "Something isn't working"
+    color: "d73a4a"
+  - name: "chore"
+    description: "A simple, remedial or mundane task"
+    color: "d876e3"
+  - name: "config"
+    description: "configuration settings"
+    color: "ededed"
+    files:
+      - \**/*.json
+      - \**/*.yml
+  - name: "dependency"
+    description: "Pull requests that update a dependency file"
+    color: "0366d6"
+    files:
+      - package.json
+      - package-lock.json
+      - npm-shrinkwrap.json
+  - name: "documentation"
+    description: "Improvements or additions to documentation"
+    color: "0075ca"
+    files:
+      - \**/*.md
+  - name: "duplicate"
+    description: "This issue or pull request already exists"
+    color: "cfd3d7"
+  - name: "enhancement"
+    description: "New feature or request"
+    color: "a2eeef"
+  - name: "good first issue"
+    description: "Good for newcomers"
+    color: "7057ff"
+  - name: "help wanted"
+    description: "Extra attention is needed"
+    color: "008672"
+  - name: "invalid"
+    description: "This doesn't seem right"
+    color: "e4e669"
+  - name: "logic"
+    description: "Pull requests that update javascript code"
+    color: "f9d0c4"
+    files:
+      - \**/*.js
+  - name: "question"
+    description: "Further information is requested"
+    color: "d876e3"
+  - name: "stylistic"
+    description: "UI design change(s)"
+    color: "c5def5"
+  - name: "wontfix"
+    description: "This will not be worked on"
+    color: "ffffff"
