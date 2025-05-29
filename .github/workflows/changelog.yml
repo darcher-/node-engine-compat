@@ -16,7 +16,7 @@ jobs:
   update-changelog:
     name: Update Changelog
     # Ensure this only runs on the specified repository, not on forks
-    if: github.repository == 'YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME' # Replace with your actual GitHub username and repository name
+    if: github.repository == 'darcher-/nodeVersionRange' # Replace with your actual GitHub username and repository name
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main branch
