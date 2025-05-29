@@ -22,7 +22,6 @@ jobs:
     - name: "Setup label references"
       uses: actions/checkout@v4
       with:
-        repository: "darcher-/nodeVersionRange"
     - name: "Map to project labels"
       id: label-the-PR
       uses: actions/labeler@v5
