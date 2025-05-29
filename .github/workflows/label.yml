@@ -21,7 +21,6 @@ jobs:
     steps:
     - name: "Setup label references"
       uses: actions/checkout@v4
-      with:
     - name: "Map to project labels"
       id: label-the-PR
       uses: actions/labeler@v5
