@@ -8,10 +8,60 @@
     "yargs": "^17.7.2"
   },
   "description": "A CLI library to check the defined node version engines of the project and its dependencies",
-  "engines": {
-    "node": ">=12",
-    "npm": "please-use-npm"
+  "devDependencies": {
+    "axe-core": "4.10.3",
+    "eslint": "9.27.0",
+    "htmlhint": "1.2.0",
+    "markdownlint-cli": "0.45.0",
+    "prettier": "3.5.3",
+    "standard-version": "^9.5.0",
+    "stylelint": "16.20.0"
   },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:prettier/recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error"
+    }
+  },
+  "prettier": {
+    "arrowParens": "avoid",
+    "bracketSpacing": true,
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": false,
+    "trailingComma": "es5",
+    "useTabs": false,
+    "vueIndentScriptAndStyle": false,
+    "htmlWhitespaceSensitivity": "css",
+    "jsxSingleQuote": false,
+    "jsxBracketSameLine": false,
+    "proseWrap": "preserve",
+    "quoteProps": "as-needed",
+    "requirePragma": false,
+    "insertPragma": false,
+    "tabWidth": 2
+  },
+  "engines": {
+    "node": "21",
+    "npm": "10"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "gitHead": "b1c0f3d8c4e2a5f6b7e8c9d0e1f2a3b4c5d6e7f8",
   "homepage": "https://github.com/darcher-/nodeVersionRange#readme",
   "keywords": [
     "compatibility",
@@ -34,13 +84,14 @@
   "license": "MIT",
   "main": "./src/index.js",
   "name": "node-compat-range-analyzer",
-  "packageManager": "npm@6.14.16",
+  "packageManager": "npm@10.5.0",
   "private": true,
   "publishConfig": {
     "access": "public"
   },
   "repository": "git@github.com:darcher-/nodeVersionRange.git",
   "scripts": {
+    "release": "standard-version",
     "start": "node ./src/index.js"
   },
   "type": "module",

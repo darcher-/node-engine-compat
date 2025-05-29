@@ -1,0 +1,159 @@
+name: Lint Project
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install linters
+        run: npm install -g markdownlint-cli htmlhint stylelint eslint
+
+      - name: Run linters
+        id: lint
+        continue-on-error: true
+        run: |
+          echo "::set-output name=markdownlint::$(markdownlint "**/*.md" --fix 2>&1 || echo 'Failed')"
+          echo "::set-output name=htmlhint::$(htmlhint "**/*.html" 2>&1 || echo 'Failed')"
+          echo "::set-output name=stylelint::$(stylelint "**/*.css" --fix 2>&1 || echo 'Failed')"
+          echo "::set-output name=eslint::$(eslint "**/*.{js,json,yml}" --fix 2>&1 || echo 'Failed')"
+
+      - name: Check for linting issues
+        id: lint_check
+        run: |
+          if [[ "${{ steps.lint.outputs.markdownlint }}" == *"Failed"* ]] || \
+             [[ "${{ steps.lint.outputs.htmlhint }}" == *"Failed"* ]] || \
+             [[ "${{ steps.lint.outputs.stylelint }}" == *"Failed"* ]] || \
+             [[ "${{ steps.lint.outputs.eslint }}" == *"Failed"* ]]; then
+            echo "::set-output name=has_issues::true"
+            echo "Linting issues were found"
+          else
+            echo "::set-output name=has_issues::false"
+            echo "No linting issues found"
+          fi
+
+      - name: Setup GitHub CLI
+        if: steps.lint_check.outputs.has_issues == 'true'
+        run: |
+          # Install GitHub CLI if not already installed
+          if ! command -v gh &> /dev/null; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh
+          fi
+
+      - name: Generate GitHub PAT
+        if: steps.lint_check.outputs.has_issues == 'true'
+        id: generate_pat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Verify GH_TOKEN is not empty
+          if [ -z "$GH_TOKEN" ]; then
+            echo "GH_TOKEN is empty. Ensure the workflow has proper permissions."
+            exit 1
+          fi
+
+          # Login to GitHub using the GITHUB_TOKEN
+          echo "$GH_TOKEN" | gh auth login --with-token || {
+            echo "Failed to authenticate with GH_TOKEN. Check permissions and validity.";
+            exit 1;
+          }
+
+          # Verify the token has sufficient permissions
+          echo "Checking token permissions..."
+          CURRENT_REPO="${GITHUB_REPOSITORY}"
+          if ! gh api "repos/${CURRENT_REPO}" &>/dev/null; then
+            echo "Token doesn't have sufficient permissions for this repository."
+            exit 1
+          fi
+
+          # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
+          echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+          echo "Successfully authenticated and set GH_PAT"
+
+      - name: Commit linting fixes
+        if: steps.lint_check.outputs.has_issues == 'true' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "Fix linting issues"
+
+          # Use dynamically generated PAT for authentication
+          git remote set-url origin https://x-access-token:${{ env.GH_PAT }}@github.com/${{ github.repository }}.git
+          git push
+
+      - name: Create PR with fixes
+        if: steps.lint_check.outputs.has_issues == 'true' && github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ env.GH_PAT }}
+          commit-message: Fix linting issues
+          title: Fix linting issues
+          body: |
+            This PR fixes linting issues automatically.
+
+            Changes were made by the linting workflow.
+          branch: fix-lint-${{ github.head_ref }}
+          base: ${{ github.head_ref }}
+
+      - name: Add PR comment with linting results
+        if: steps.lint_check.outputs.has_issues == 'true' && github.event_name == 'pull_request'
+        run: |
+          # Create a report of the linting issues
+          echo "## Linting Issues Found" > lint-report.md
+          echo "The linting workflow has detected and fixed issues in your code." >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### Markdown Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.markdownlint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### HTML Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.htmlhint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### CSS Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.stylelint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### JavaScript/JSON/YAML Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.eslint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+
+          # Add comment to PR
+          gh pr comment ${{ github.event.pull_request.number }} --body-file lint-report.md
+        env:
+          GITHUB_TOKEN: ${{ env.GH_PAT }}

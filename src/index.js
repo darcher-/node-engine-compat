@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const yargs = require('yargs/yargs')
-const { hideBin } = require('yargs/helpers')
-const path = require('path')
-const logger = require('./services/logger.js')
-const semverUtils = require('./utils/semver.util.js')
-const packageUtils = require('./utils/package.util.js')
+import { join } from 'path'
+import { hideBin } from 'yargs/helpers'
+import yargs from 'yargs/yargs'
+import loggerService from './services/logger.js'
+import packageUtils from './utils/package.util.js'
+import semverUtils from './utils/semver.util.js'
 
 /**
  * @typedef {object} Param
@@ -30,8 +30,8 @@ const packageUtils = require('./utils/package.util.js')
 function main(argv)
 {
   const projectPath = typeof argv?.projectPath === 'string' ? argv.projectPath : process.cwd()
-  const projectPkgPath = path.join(projectPath, 'package.json')
-  const pkg = packageUtils.getRootPkgJson(projectPkgPath)
+  const projectPkgPath = join(projectPath, 'package.json')
+  const pkg = packageUtils?.getRootPkgJson(projectPkgPath)
   if (!pkg) return
 
   let globalMin = null
@@ -45,14 +45,14 @@ function main(argv)
     'node' in pkg.engines &&
     typeof pkg.engines.node === 'string'
   ) {
-    const parsed = semverUtils.parseNodeRange(pkg.engines.node)
+    const parsed = semverUtils?.parseNodeRange(pkg.engines.node)
     const projMin = Array.isArray(parsed) && typeof parsed[0] === 'string' ? parsed[0] : null
     const projMax = Array.isArray(parsed) && typeof parsed[1] === 'string' ? parsed[1] : null
-    globalMin = semverUtils.maxVer(globalMin, projMin)
-    globalMax = semverUtils.minVer(globalMax, projMax)
+    globalMin = semverUtils?.maxVer(globalMin, projMin)
+    globalMax = semverUtils?.minVer(globalMax, projMax)
 
     if (argv.verbose) {
-      logger.info('info.dependencyProcessed', {
+      loggerService?.info('info.dependencyProcessed', {
         depName: 'Project root',
         nodeEngine: pkg.engines.node,
         min: projMin,
@@ -62,11 +62,11 @@ function main(argv)
   }
 
   const excludeDevDeps = !!(argv.noDev || argv['no-dev'])
-  const dependencies = packageUtils.getDeps(pkg, excludeDevDeps)
+  const dependencies = packageUtils?.getDeps(pkg, excludeDevDeps)
   const depNames = Object.keys(dependencies)
 
   for (const depName of depNames) {
-    const depPkg = packageUtils.getDepPkgJson(depName, projectPath)
+    const depPkg = packageUtils?.getDepPkgJson(depName, projectPath)
     if (
       depPkg &&
       typeof depPkg === 'object' &&
@@ -76,19 +76,19 @@ function main(argv)
       'node' in depPkg.engines &&
       typeof depPkg.engines.node === 'string'
     ) {
-      const parsed = semverUtils.parseNodeRange(depPkg.engines.node)
+      const parsed = semverUtils?.parseNodeRange(depPkg.engines.node)
       const min = Array.isArray(parsed) && typeof parsed[0] === 'string' ? parsed[0] : null
       const max = Array.isArray(parsed) && typeof parsed[1] === 'string' ? parsed[1] : null
-      globalMin = semverUtils.maxVer(globalMin, min)
-      globalMax = semverUtils.minVer(globalMax, max)
+      globalMin = semverUtils?.maxVer(globalMin, min)
+      globalMax = semverUtils?.minVer(globalMax, max)
       if (argv.verbose) {
-        const nodeEngine = depPkg.engines.node
-        logger.info('info.dependencyProcessed', { depName, nodeEngine, min, max })
+        const nodeEngine = depPkg.engines.node || 'N/A'
+        loggerService.info('info.dependencyProcessed', { depName, nodeEngine, min, max })
       }
     }
   }
 
-  const conflict = !!(globalMin && globalMax && semverUtils.compareVersions(globalMin, globalMax) > 0)
+  const conflict = !!(globalMin && globalMax && semverUtils?.compareVersions(globalMin, globalMax) > 0)
 
   if (argv.json) {
     const result = {
@@ -112,20 +112,19 @@ function main(argv)
     if (conflict) process.exit(1)
   } else {
     if (conflict) {
-      logger.error('errors.versionConflict', { globalMin, globalMax }, true)
+      loggerService?.error('errors.versionConflict', { globalMin, globalMax }, true)
     } else if (globalMin && globalMax) {
-      logger.info('info.determinedRangeMinMax', { globalMin, globalMax })
+      loggerService?.info('info.determinedRangeMinMax', { globalMin, globalMax })
     } else if (globalMin) {
-      logger.info('info.determinedRangeMinOnly', { globalMin })
+      loggerService?.info('info.determinedRangeMinOnly', { globalMin })
     } else if (globalMax) {
-      logger.info('info.determinedRangeMaxOnly', { globalMax })
+      loggerService?.info('info.determinedRangeMaxOnly', { globalMax })
     } else {
-      logger.warn('info.noConstraintsFound', {})
+      loggerService?.warn('info.noConstraintsFound', {})
     }
   }
 }
 
-if (require.main === module) {
   const argv = yargs(hideBin(process.argv))
     .option('project-path', {
       alias: 'p',
@@ -154,9 +153,8 @@ if (require.main === module) {
   Promise.resolve(argv).then(
     (resolvedArgv) => main(resolvedArgv)
   )
-}
 
-module.exports = {
+export default {
   calculateCompatibility: main,
   ...semverUtils,
   ...packageUtils

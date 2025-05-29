@@ -1,5 +1,3 @@
-// 3.2. Semantic Version Comparison Utilities
-
 /**
  * Compares two semantic version strings (a, b).
  * Returns:
@@ -145,7 +143,7 @@ function parseNodeRange(range)
   return [overallEngineMin ?? null, overallEngineMax ?? null]
 }
 
-module.exports = {
+export default {
   compareVersions,
   minVer,
   maxVer,

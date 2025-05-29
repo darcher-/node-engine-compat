@@ -1,0 +1,120 @@
+name: Update Version
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    # Grant permissions for GITHUB_TOKEN
+    permissions:
+      contents: write # To push commits, tags, and create releases
+      pull-requests: read # For gh release create --generate-notes to access PR info
+      # issues: write # If standard-version links issues and needs to write to them (usually not needed)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for standard-version to analyze all commits
+          token: ${{ secrets.GITHUB_TOKEN }} # Use default token for initial checkout
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "21" # As per your package.json engines.node
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get current version before release
+        id: get_current_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check if standard-version is installed
+        id: check_deps
+        run: |
+          if ! npm list -g standard-version &>/dev/null && ! npm list standard-version &>/dev/null; then
+            echo "::output name=missing_deps::true"
+            echo "standard-version is not installed"
+          else
+            echo "::output name=missing_deps::false"
+            echo "standard-version is installed"
+          fi
+
+      - name: Run standard-version
+        id: run_standard_version
+        # This executes the "release" script from your package.json: "standard-version"
+        # standard-version will:
+        # 1. Analyze conventional commits since the last tag.
+        # 2. Determine version bump (patch, minor, major).
+        # 3. Update package.json, package-lock.json.
+        # 4. Generate/update CHANGELOG.md.
+        # 5. Commit these changes.
+        # 6. Create a new git tag (e.g., v1.2.3).
+        # It exits successfully even if no new version is warranted (no relevant commits).
+        run: npm run release
+
+      - name: Get new version after release attempt
+        id: get_new_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check if version changed
+        id: check_version_change
+        run: |
+          if [[ "${{ steps.get_current_version.outputs.version }}" == "${{ steps.get_new_version.outputs.version }}" ]]; then
+            echo "No version change detected by standard-version."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version changed from ${{ steps.get_current_version.outputs.version }} to ${{ steps.get_new_version.outputs.version }}"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup GitHub CLI
+        if: steps.check_version_change.outputs.changed == 'true'
+        run: |
+          # Install GitHub CLI if not already installed
+          if ! command -v gh &> /dev/null; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh
+          fi
+
+      - name: Generate GitHub PAT
+        if: steps.check_version_change.outputs.changed == 'true'
+        id: generate_pat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Login to GitHub using the GITHUB_TOKEN
+          echo "$GH_TOKEN" | gh auth login --with-token
+
+          # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
+          echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+
+      - name: Push changes and tags
+        if: steps.check_version_change.outputs.changed == 'true'
+        run: |
+          # Use dynamically generated PAT for authentication
+          git remote set-url origin https://x-access-token:${{ env.GH_PAT }}@github.com/${{ github.repository }}.git
+          git push --follow-tags origin main
+
+      - name: Create GitHub Release
+        if: steps.check_version_change.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ env.GH_PAT }}
+        run: |
+          TAG_NAME="v${{ steps.get_new_version.outputs.version }}"
+          gh release create "$TAG_NAME" \
+            --title "Release $TAG_NAME" \
+            --generate-notes # Generates release notes from conventional commits since the last tag

@@ -259,4 +259,86 @@ Tool exits with code 1.
 
 ---
 
+## 🤖 CI/CD Automation
+
+### GitHub Actions PAT Automation
+
+This project's workflows include automated PAT (Personal Access Token) generation for GitHub Actions. This allows the workflows to:
+
+1. Make git commits
+2. Push changes
+3. Create pull requests
+4. Create releases
+
+Without requiring a manually created PAT secret.
+
+#### How it works:
+
+1. Workflows use the GitHub CLI to authenticate with the default `GITHUB_TOKEN`
+2. The token is stored as an environment variable `GH_PAT` for use in the workflow
+3. All git operations and API calls use this dynamically generated token
+
+Example implementation:
+
+```yaml
+- name: Setup GitHub CLI
+  run: |
+    # Install GitHub CLI if not already installed
+    if ! command -v gh &> /dev/null; then
+      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+      sudo apt update
+      sudo apt install gh
+    fi
+
+- name: Generate GitHub PAT
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    # Login to GitHub using the GITHUB_TOKEN
+    echo "$GH_TOKEN" | gh auth login --with-token
+
+    # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
+    echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+```
+
+> **Note:** The default `GITHUB_TOKEN` has some limitations compared to a classic PAT, particularly around triggering subsequent workflows. If you need additional permissions, adjust the workflow's `permissions` section.
+
+## 🔄 CI/CD Workflows
+
+This project includes several GitHub Actions workflows to automate common development tasks:
+
+### Core Workflows
+
+| Workflow | Description |
+| -------- | ----------- |
+| **Lint Project** | Runs linters on the codebase and automatically fixes issues |
+| **Format Syntax** | Formats code using Prettier to maintain consistent style |
+| **Update Version** | Updates version numbers and generates a changelog |
+| **Update History** | Updates the project history and release notes |
+| **Verify Actions** | Checks and updates GitHub Actions workflows |
+
+### Enhanced PR Workflows
+
+| Workflow | Description |
+| -------- | ----------- |
+| **PR Checks** | Validates PR title, branch name, and description format |
+| **PR Feedback** | Provides test results and build status on PRs |
+| **PR Auto-Update** | Automatically updates PRs with necessary file changes |
+| **PR Summary** | Aggregates status of all workflow runs for a PR |
+| **Security Scan** | Scans dependencies for vulnerabilities |
+| **Dependency Updates** | Automatically creates PRs for dependency updates |
+
+### Authentication Features
+
+The workflows include enhanced authentication for PR integration:
+
+- Automatic token handling for PR interactions
+- Permission verification before Git operations
+- Error handling for authentication failures
+- Direct commits to PR branches for immediate fixes
+- Detailed PR comments with actionable feedback
+
+---
+
 **Contributions and feedback are welcome!**
