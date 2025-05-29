@@ -4,9 +4,6 @@
     "check-node-compat": "./src/index.js"
   },
   "bugs": "https://github.com/darcher-/nodeVersionRange/issues",
-  "dependencies": {
-    "yargs": "^18.0.0"
-  },
   "description": "A CLI library to check the defined node version engines of the project and its dependencies",
   "devDependencies": {
     "axe-core": "4.10.3",
@@ -15,7 +12,8 @@
     "markdownlint-cli": "0.45.0",
     "prettier": "3.5.3",
     "standard-version": "^9.5.0",
-    "stylelint": "16.20.0"
+    "stylelint": "16.20.0",
+    "yargs": "18.0.0"
   },
   "eslintConfig": {
     "extends": [
