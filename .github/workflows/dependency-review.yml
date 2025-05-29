@@ -15,6 +15,7 @@ on:
 
 # Permission authentication: <https://docs.github.com/en/enterprise-cloud@latest/code-security/supply-chain-security/understanding-your-software-supply-chain/using-the-dependency-submission-api>
 permissions:
+  actions: write
   contents: read
   security-events: write
 
