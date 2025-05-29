@@ -272,7 +272,7 @@ This project's workflows include automated PAT (Personal Access Token) generatio
 
 Without requiring a manually created PAT secret.
 
-#### How it works:
+#### How it works
 
 1. Workflows use the GitHub CLI to authenticate with the default `GITHUB_TOKEN`
 2. The token is stored as an environment variable `GH_PAT` for use in the workflow
