@@ -23,11 +23,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run linters in parallel
+      - name: Run linters sequentially
         run: |
-          npx run-parallel \
-            "npx markdownlint '**/*.md'" \
-            "npx htmlhint '**/*.html'" \
-            "npx stylelint '**/*.css'" \
-            "npx eslint '**/*.{js,json,yml}'"
+          npx markdownlint '**/*.md'
+          npx htmlhint '**/*.html'
+          npx stylelint '**/*.css'
+          npx eslint '**/*.{js,json,yml}'
           npx axe --fail-fast --wcag-version 2.2 --rule color-contrast,button-name,link-name,document-title,html-has-lang,image-alt --standard AA --tags wcag2aa demo/index.html
