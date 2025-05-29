@@ -92,8 +92,8 @@
   "repository": "git@github.com:darcher-/nodeVersionRange.git",
   "scripts": {
     "release": "standard-version",
-    "start": "node ./src/index.js"
-    "test": "echo \"No tests specified\" && exit 0",
+    "start": "node ./src/index.js",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "type": "module",
   "version": "1.1.0"
