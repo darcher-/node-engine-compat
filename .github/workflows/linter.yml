@@ -72,16 +72,29 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Login to GitHub using the GITHUB_TOKEN
-          echo "$GH_TOKEN" | gh auth login --with-token
+          # Verify GH_TOKEN is not empty
+          if [ -z "$GH_TOKEN" ]; then
+            echo "GH_TOKEN is empty. Ensure the workflow has proper permissions."
+            exit 1
+          fi
 
-          # Create a classic PAT with necessary scopes
-          # Note: This requires a pre-existing token with appropriate permissions
-          # as GH CLI can't create PATs directly in non-interactive mode
-          # We'll use the GITHUB_TOKEN for subsequent operations
+          # Login to GitHub using the GITHUB_TOKEN
+          echo "$GH_TOKEN" | gh auth login --with-token || {
+            echo "Failed to authenticate with GH_TOKEN. Check permissions and validity.";
+            exit 1;
+          }
+
+          # Verify the token has sufficient permissions
+          echo "Checking token permissions..."
+          CURRENT_REPO="${GITHUB_REPOSITORY}"
+          if ! gh api "repos/${CURRENT_REPO}" &>/dev/null; then
+            echo "Token doesn't have sufficient permissions for this repository."
+            exit 1
+          fi
 
           # Set the GITHUB_TOKEN as GH_PAT for use in this workflow
           echo "GH_PAT=$GH_TOKEN" >> $GITHUB_ENV
+          echo "Successfully authenticated and set GH_PAT"
 
       - name: Commit linting fixes
         if: steps.lint_check.outputs.has_issues == 'true' && github.event_name == 'push'
@@ -108,3 +121,39 @@ jobs:
             Changes were made by the linting workflow.
           branch: fix-lint-${{ github.head_ref }}
           base: ${{ github.head_ref }}
+
+      - name: Add PR comment with linting results
+        if: steps.lint_check.outputs.has_issues == 'true' && github.event_name == 'pull_request'
+        run: |
+          # Create a report of the linting issues
+          echo "## Linting Issues Found" > lint-report.md
+          echo "The linting workflow has detected and fixed issues in your code." >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### Markdown Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.markdownlint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### HTML Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.htmlhint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### CSS Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.stylelint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "" >> lint-report.md
+
+          echo "### JavaScript/JSON/YAML Linting" >> lint-report.md
+          echo '```' >> lint-report.md
+          echo "${{ steps.lint.outputs.eslint }}" >> lint-report.md
+          echo '```' >> lint-report.md
+
+          # Add comment to PR
+          gh pr comment ${{ github.event.pull_request.number }} --body-file lint-report.md
+        env:
+          GITHUB_TOKEN: ${{ env.GH_PAT }}

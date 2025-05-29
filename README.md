@@ -304,6 +304,41 @@ Example implementation:
 
 > **Note:** The default `GITHUB_TOKEN` has some limitations compared to a classic PAT, particularly around triggering subsequent workflows. If you need additional permissions, adjust the workflow's `permissions` section.
 
+## 🔄 CI/CD Workflows
+
+This project includes several GitHub Actions workflows to automate common development tasks:
+
+### Core Workflows
+
+| Workflow | Description |
+| -------- | ----------- |
+| **Lint Project** | Runs linters on the codebase and automatically fixes issues |
+| **Format Syntax** | Formats code using Prettier to maintain consistent style |
+| **Update Version** | Updates version numbers and generates a changelog |
+| **Update History** | Updates the project history and release notes |
+| **Verify Actions** | Checks and updates GitHub Actions workflows |
+
+### Enhanced PR Workflows
+
+| Workflow | Description |
+| -------- | ----------- |
+| **PR Checks** | Validates PR title, branch name, and description format |
+| **PR Feedback** | Provides test results and build status on PRs |
+| **PR Auto-Update** | Automatically updates PRs with necessary file changes |
+| **PR Summary** | Aggregates status of all workflow runs for a PR |
+| **Security Scan** | Scans dependencies for vulnerabilities |
+| **Dependency Updates** | Automatically creates PRs for dependency updates |
+
+### Authentication Features
+
+The workflows include enhanced authentication for PR integration:
+
+- Automatic token handling for PR interactions
+- Permission verification before Git operations
+- Error handling for authentication failures
+- Direct commits to PR branches for immediate fixes
+- Detailed PR comments with actionable feedback
+
 ---
 
 **Contributions and feedback are welcome!**

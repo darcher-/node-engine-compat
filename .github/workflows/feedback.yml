@@ -1,0 +1,85 @@
+name: Provide Feedback
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze:
+    name: Analyze PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        id: tests
+        continue-on-error: true
+        run: npm test || echo "::set-output name=test_failed::true"
+
+      - name: Check bundle size
+        id: bundle_size
+        run: |
+          npm run build || exit 0
+          SIZE=$(du -sh ./dist 2>/dev/null | cut -f1 || echo "N/A")
+          echo "::set-output name=size::$SIZE"
+
+      - name: Generate PR summary
+        id: summary
+        run: |
+          echo "## Build Status" > pr_summary.md
+
+          if [[ "${{ steps.tests.outputs.test_failed }}" == "true" ]]; then
+            echo "⚠️ **Tests failed** - Please fix before merging." >> pr_summary.md
+          else
+            echo "✅ **Tests passed** - Good job!" >> pr_summary.md
+          fi
+
+          echo -e "\n## Bundle Size" >> pr_summary.md
+          echo "Current size: ${{ steps.bundle_size.outputs.size }}" >> pr_summary.md
+
+          echo -e "\n## Affected Areas" >> pr_summary.md
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }})
+
+          if [[ -n "$CHANGED_FILES" ]]; then
+            echo "Changed files:" >> pr_summary.md
+            echo '```' >> pr_summary.md
+            echo "$CHANGED_FILES" >> pr_summary.md
+            echo '```' >> pr_summary.md
+          else
+            echo "No files changed" >> pr_summary.md
+          fi
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: find_comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: Build Status
+
+      - name: Add or update PR comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-file: pr_summary.md
+          edit-mode: replace

@@ -9,7 +9,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  workflow: write
 
 jobs:
   format:
@@ -104,3 +103,24 @@ jobs:
             Changes were made by the formatting workflow.
           branch: format-${{ github.head_ref }}
           base: ${{ github.head_ref }}
+
+      - name: Add PR comment with formatting results
+        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'pull_request'
+        run: |
+          # Create summary of formatting changes
+          git diff --name-only HEAD > formatted-files.txt
+
+          # Create report
+          echo "## Prettier Formatting Applied" > format-report.md
+          echo "The following files have been automatically formatted with Prettier:" >> format-report.md
+          echo "" >> format-report.md
+          echo '```' >> format-report.md
+          cat formatted-files.txt >> format-report.md
+          echo '```' >> format-report.md
+          echo "" >> format-report.md
+          echo "A pull request has been created with these changes." >> format-report.md
+
+          # Add comment to PR
+          gh pr comment ${{ github.event.pull_request.number }} --body-file format-report.md
+        env:
+          GITHUB_TOKEN: ${{ env.GH_PAT }}
