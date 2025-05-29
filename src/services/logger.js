@@ -1,5 +1,6 @@
-const fs = require('fs')
-const path = require('path')
+import { readFileSync } from 'fs'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 
 // ANSI escape codes for colors
 const RESET = "\x1b[0m"
@@ -7,7 +8,10 @@ const FG_RED = "\x1b[31m"
 const FG_GREEN = "\x1b[32m"
 const FG_YELLOW = "\x1b[33m"
 const FG_CYAN = "\x1b[36m"
-const messages = JSON.parse(fs.readFileSync(path.join(__dirname, '../shared/messages.json'), 'utf8'))
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const messages = JSON.parse(readFileSync(join(__dirname, '../shared/messages.json'), 'utf8'))
 
 /**
  * @param {string} templateString
@@ -91,4 +95,4 @@ const logger = {
   }
 }
 
-module.exports = logger
+export default logger
