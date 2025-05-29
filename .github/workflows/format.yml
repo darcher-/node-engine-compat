@@ -1,5 +1,5 @@
 # Suggested code may be subject to a license. Learn more: ~LicenseLog:2664196719.
-name: Code Formatting on Merge
+name: Format Code on Merge
 
 on:
   push:
@@ -7,12 +7,13 @@ on:
       - dev
   pull_request:
     branches:
-      - main
+      - dev
 
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: "18.x"
