@@ -4,8 +4,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - ".github/*.md"
-      - ".github/workflows/document-links.yml"
+      - ".github/**/*.md"
   workflow_dispatch:
 
 jobs:
@@ -18,7 +17,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version-file: ".nvmrc"
 
       - name: Create docs index
         run: |

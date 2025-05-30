@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - ".github/*.md"
-      - "docs/**/*.md"
+      - "**/*.md"
   pull_request:
     paths:
       - ".github/*.md"
-      - "docs/**/*.md"
+      - "**/*.md"
 
 jobs:
   docs-check:
@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version-file: ".nvmrc"
 
       - name: Install markdown-link-check
         run: npm install -g markdown-link-check
