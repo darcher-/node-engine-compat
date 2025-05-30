@@ -1,8 +1,9 @@
-name: Deploy Demo Page
+name: Deploy Demo
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

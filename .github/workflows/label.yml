@@ -1,10 +1,13 @@
-name: Labeler
+name: Mount Labels
 
 on:
   pull_request_target:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - dev
+      - main
+  push:
+  schedule:
+    - cron: '39 5 * * 1' # Run weekly on Mondays at 5:39 AM
 
 jobs:
   label:
