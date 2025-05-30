@@ -28,8 +28,7 @@ jobs:
       - name: Check documentation links
         run: |
           echo "Checking links in documentation files..."
-          find .github -name "*.md" -exec markdown-link-check {} \;
-          find docs -name "*.md" -exec markdown-link-check {} \;
+          find . -name "*.md" -exec markdown-link-check {} \;
 
       - name: Validate documentation references
         run: |
