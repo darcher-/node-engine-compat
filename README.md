@@ -1,6 +1,31 @@
 # Node.js Compatibility Range Analyzer
 
+[![CodeQL Security Analysis](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml)
+[![Node.js CI](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml)
+[![Dependency Updates](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml)
+[![Demo Deployment](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml)
+
+<sup><sub>DESCRIPTION</sub></sup>
+
 A CLI tool to **analyze and aggregate Node.js version requirements** for your project and its direct dependencies. It reads the `engines.node` fields from your project's [`package.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json) and those of its direct dependencies (including devDependencies by default), then computes the intersection—helping you ensure your project runs on a compatible Node.js version.
+
+---
+
+## 📚 Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Command-Line Options](#command-line-options)
+- [How It Works](#how-it-works)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Documentation Index](docs.md)
+  - [Changelog](.github/changelog.md)
+  - [Contributing Guide](.github/contributing.md)
+  - [Code of Conduct](.github/code_of_conduct.md)
+  - [Security Policy](.github/security.md)
+  - [License](.github/license.md)
 
 ---
 
@@ -84,19 +109,7 @@ node ./src/index.js
 
 ---
 
-## 📚 Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Command-Line Options](#command-line-options)
-- [How It Works](#how-it-works)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-
----
-
-## ⚙️ How It Works
+## ⚙️ Functionality
 
 1. **Locate Project [`package.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json):**
    - By default, uses the current directory or the path specified by `--project-path`.
@@ -116,7 +129,7 @@ node ./src/index.js
 
 ---
 
-## 💡 Examples
+## 💡 Demonstrations
 
 ### Example Project Structure
 

@@ -218,20 +218,16 @@ labels:
   - color: 0075ca
     description: Improvements or additions to documentation
     files:
-      - "**/*.markdown"
-      - "**/*.mdx"
-      - "**/*.md"
-      - "docs/**/*"
-      - "**/*.txt"
-      - "**/*.rst"
-      - "**/*.adoc"
-      - "**/*.asciidoc"
-      - "**/README*"
-      - "**/CHANGELOG*"
-      - "**/CONTRIBUTING*"
-      - "**/LICENSE*"
-      - "**/SECURITY*"
-    name: documentation
+      - \**/*.md
+      - .github/*.md
+      - .github/CHANGELOG.md
+      - .github/CONTRIBUTING.md
+      - .github/CODE_OF_CONDUCT.md
+      - .github/SECURITY.md
+      - .github/LICENSE.md
+      - .github/CITATION.md
+      - .github/CODEOWNERS.md
+      - docs/**/*.md
     ref: |
       documentation
       docs
@@ -241,136 +237,32 @@ labels:
       tutorial
       examples
       comments
-      comment
-      reference
-      api docs
-      jsdoc
-      tsdoc
-      javadoc
-      annotation
-      help
-      how-to
-      examples
-      sample
-  - color: cfd3d7
-    description: This issue or pull request already exists
-    name: duplicate
-    ref: |
-      duplicate
-      dup
-      dupe
-      already exists
-      already reported
-      existing issue
-      same as
-      similar to
-      identical
-      redundant
-      repeat
-      previously reported
-      existing PR
-  - color: a2eeef
-    description: New feature or request
-    name: enhancement
-    files:
-      - "src/**/*.js"
-      - "src/utils/*.js"
-      - "src/services/*.js"
-    ref: |
-      improvement
-      enhancement
-      feature
-      feat
-      new
-      add
-      request
-      proposal
-      idea
-      wishlist
-      implement
-      functionality
-      capability
-      extend
-      extension
-      new feature
-      addition
-      roadmap
-      backlog
-      suggestion
-      usability
-      ux
-      convenience
-  - color: 7057ff
-    description: Good for newcomers
-    name: good first issue
-    ref: |
-      small
-      easy
-      good first issue
-      beginner
-      new
-      starter
-      first-timers-only
-      up-for-grabs
-      newcomer
-      newbie
-      entry-level
-      trivial
-      simple
-      low-hanging-fruit
-      straightforward
-      introduction
-      starter task
-      beginner friendly
-      good-first-contribution
-      help-wanted-easy
-  - color: 8672
-    description: Extra attention is needed
-    name: help wanted
-    ref: |
-      help
-      sos
-      assistance needed
-      need help
-      contributors welcome
-      seeking help
-      up for grabs
-      looking for input
-      seeking contributors
-      contribution welcome
-      help appreciated
-      feedback wanted
-      suggestions welcome
-      team effort
-      collaboration
-      need expertise
-      need review
-      expert needed
-  - color: e4e669
-    description: This doesn't seem right
-    name: invalid
-    ref: |
-      invalid
-      ignore
-      wrong
-      avoid
-      mistake
-      incorrect
-      not valid
-      malformed
-      improper
-      erroneous
-      flawed
-      unusable
-      nonsense
-      spam
-      irrelevant
-      off-topic
-      out of scope
-      inappropriate
-      misguided
-  - color: f9d0c4
-    description: Pull requests that update javascript code
+      changelog
+      contributing
+      security
+      license
+      citation
+      codeowners
+      code of conduct
+      policy
+  - name: "duplicate"
+    description: "This issue or pull request already exists"
+    color: "cfd3d7"
+  - name: "enhancement"
+    description: "New feature or request"
+    color: "a2eeef"
+  - name: "good first issue"
+    description: "Good for newcomers"
+    color: "7057ff"
+  - name: "help wanted"
+    description: "Extra attention is needed"
+    color: "008672"
+  - name: "invalid"
+    description: "This doesn't seem right"
+    color: "e4e669"
+  - name: "logic"
+    description: "Pull requests that update javascript code"
+    color: "f9d0c4"
     files:
       - \**/*.js
       - src/**/*.js
@@ -381,7 +273,6 @@ labels:
       - src/**/*.tsx
       - src/**/*.mjs
       - src/**/*.cjs
-    name: functional
     ref: |
       functional
       js
