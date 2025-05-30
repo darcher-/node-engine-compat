@@ -212,12 +212,12 @@ The tool handles errors gracefully, reporting missing files, unparseable JSON, a
 File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 :------------------- | ------: | -------: | ------: | ------: | :----------------
 All files            | `99.41` |  `85.71` |   `100` | `99.41` |                   
- <src/>              |   `100` |    `100` |   `100` |   `100` |                   
-  <index.js>         |   `100` |    `100` |   `100` |   `100` |                   
- <src/utils/>        |  `99.2` |  `85.71` |   `100` |  `99.2` |                   
-  <logger.service.js>| `99.48` |  `92.59` |   `100` | `99.48` | `91`                
-  <package.util.js>  |   `100` |    `100` |   `100` |   `100` |                   
-  <semver.util.js>   | `98.69` |  `83.33` |   `100` | `98.69` | `55`, `179-180`        
+ [src/](./src)              |   `100` |    `100` |   `100` |   `100` |                   
+   [index.js](./src/index.js)         |   `100` |    `100` |   `100` |   `100` |                   
+ [src/utils/](./src/utils)        |  `99.2` |  `85.71` |   `100` |  `99.2` |                   
+   [logger.service.js](./src/utils/logger.service.js)| `99.48` |  `92.59` |   `100` | `99.48` | `91`                
+   [package.util.js](./src/utils/package.service.js)  |   `100` |    `100` |   `100` |   `100` |                   
+   [semver.util.js](./src/utils/semver.service.js)   | `98.69` |  `83.33` |   `100` | `98.69` | `55`, `179-180`        
 ---------------------------------------------------------------------------------
 <!-- coverage_end -->
 
