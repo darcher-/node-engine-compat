@@ -1247,7 +1247,18 @@
         }
         return 0;
       }
-
+      function escapeHTML(str) {
+        return str.replace(/[&<>"']/g, (char) => {
+          const escapeMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+          };
+          return escapeMap[char] || char;
+        });
+      }
       document.getElementById('runCompareVersions').addEventListener('click', () => {
         const versionA = document.getElementById('compVersionA').value;
         const versionB = document.getElementById('compVersionB').value;
@@ -1298,7 +1309,9 @@
           document.getElementById('gibfoResult').innerHTML = `Error: ${result.error}`;
         } else
         {
-          document.getElementById('gibfoResult').innerHTML = `Input: <code class="mono">${operator}${version}</code><br>Min (inclusive): <code class="mono">${result.min}</code><br>Max (exclusive): <code class="mono">${result.maxExclusive}</code>`;
+          const escapedOperator = escapeHTML(operator);
+          const escapedVersion = escapeHTML(version);
+          document.getElementById('gibfoResult').innerHTML = `Input: <code class="mono">${escapedOperator}${escapedVersion}</code><br>Min (inclusive): <code class="mono">${escapeHTML(result.min)}</code><br>Max (exclusive): <code class="mono">${escapeHTML(result.maxExclusive)}</code>`;
         }
       });
 
