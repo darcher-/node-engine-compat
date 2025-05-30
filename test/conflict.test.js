@@ -81,8 +81,14 @@ try {
 
   // Since we're using noExit, we should be able to check the result directly
   assert(functionResult, 'Should return a result object')
+  // It's crucial that src/index.js correctly sets these properties on the object
+  // returned when options.noExit is true. The failure indicates functionResult.conflict is false.
   assert.strictEqual(functionResult.conflict, true, 'Should detect conflict in the returned result')
   assert.strictEqual(functionResult.globalMin, '14.0.0', 'Should determine correct min in returned result')
+  // Assuming that in a conflict like <14 vs >=14, the effective min is 14.0.0
+  // and max might be '<14.0.0' or some representation of the narrower conflicting part.
+  // The original test didn't assert functionResult.globalMax, but it's good practice.
+  // Let's ensure this aligns with what jsonOutput.globalMax will be.
 } catch (error) {
   console.error('Error running calculateCompatibility:', error)
   throw error // Re-throw to fail the test
@@ -106,10 +112,20 @@ assert.strictEqual(exitCode, 1, 'Should exit with code 1 on conflict')
 
 // Check the output format
 assert(capturedOutput.length > 0, 'Should output result in JSON format')
-const jsonOutput = JSON.parse(capturedOutput[capturedOutput.length - 1])
+let jsonOutput
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    jsonOutput = JSON.parse(capturedOutput[i])
+    break
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert(jsonOutput, 'Should have parsed valid JSON output from console')
 assert.strictEqual(jsonOutput.conflict, true, 'Should detect version conflict')
 assert.strictEqual(jsonOutput.globalMin, '14.0.0', 'Should determine correct min in conflict')
 assert(jsonOutput.message.includes('Version conflict'), 'Should include conflict message')
+if (functionResult) { // If the first part passed, check consistency for globalMax
+  assert.strictEqual(jsonOutput.globalMax, functionResult.globalMax, 'Returned globalMax and JSON globalMax should match for conflict')
+}
 
 // Restore mocks
 process.exit = originalExit

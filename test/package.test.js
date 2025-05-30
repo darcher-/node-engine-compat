@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import logger from '../src/utils/logger.service.js' // Import logger for mocking
 import packageUtils from '../src/utils/package.util.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -127,6 +128,33 @@ assert.deepStrictEqual(validDep, depPkg, 'Should correctly parse valid dependenc
 // Non-existent dependency (should log warning but not throw)
 const nonExistentDep = packageUtils.getDepPkgJson('non-existent-dep', tempDir)
 assert.strictEqual(nonExistentDep, null, 'Should return null for nonexistent dependency')
+
+// Test dependency with corrupt package.json
+const corruptDepDir = join(tempDir, 'node_modules', 'corrupt-dep')
+mkdirSync(corruptDepDir, { recursive: true })
+writeFileSync(join(corruptDepDir, 'package.json'), 'this is not valid json {')
+
+const originalLoggerWarn = logger.warn
+let warnCalledWithCorrectKey = false
+// @ts-ignore
+logger.warn = (key, ...args) => {
+  if (
+    key === 'package.missingDepPackageJson' &&
+    args[0] &&
+    typeof args[0] === 'object' &&
+    args[0].depName === 'corrupt-dep'
+  ) {
+    warnCalledWithCorrectKey = true
+  }
+  // Call original or a simplified mock if necessary for other parts of the test
+  // if (typeof originalLoggerWarn === 'function') originalLoggerWarn(key, ...args);
+}
+
+const corruptDep = packageUtils.getDepPkgJson('corrupt-dep', tempDir)
+assert.strictEqual(corruptDep, null, 'Should return null for dependency with corrupt package.json')
+assert(warnCalledWithCorrectKey, 'logger.warn should have been called with package.missingDepPackageJson for corrupt-dep')
+// @ts-ignore
+logger.warn = originalLoggerWarn // Restore
 
 // Invalid parameter types
 try {

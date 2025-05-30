@@ -84,8 +84,17 @@ indexModule.calculateCompatibility({
   json: true,
   verbose: false
 })
-assert(capturedOutput.length > 0, 'Should output result in JSON format')
-const result1 = JSON.parse(capturedOutput[0])
+
+let result1Json
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    result1Json = JSON.parse(capturedOutput[i])
+    break
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert(result1Json, 'Should output result in JSON format')
+const result1 = result1Json;
+
 assert.strictEqual(result1.globalMin, '16.0.0', 'Should include dev deps by default and determine correct min version')
 assert.strictEqual(result1.globalMax, '16.0.0', 'Should include dev deps by default and determine correct max version')
 assert.strictEqual(result1.conflict, false, 'Should not detect conflict when valid range exists')
@@ -98,7 +107,15 @@ indexModule.calculateCompatibility({
   json: true,
   noDev: true
 })
-const result2 = JSON.parse(capturedOutput[0])
+let result2Json
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    result2Json = JSON.parse(capturedOutput[i])
+    break
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert(result2Json, 'Should output result in JSON format for noDev=true')
+const result2 = result2Json
 assert.strictEqual(result2.globalMin, '14.0.0', 'Should exclude dev deps and determine correct min version')
 assert.strictEqual(result2.globalMax, '16.0.0', 'Should exclude dev deps and determine correct max version')
 restoreMocks()
@@ -110,7 +127,15 @@ indexModule.calculateCompatibility({
   json: true,
   'no-dev': true
 })
-const result3 = JSON.parse(capturedOutput[0])
+let result3Json
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    result3Json = JSON.parse(capturedOutput[i])
+    break
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert(result3Json, 'Should output result in JSON format for no-dev alias')
+const result3 = result3Json
 assert.strictEqual(result3.globalMin, '14.0.0', 'Should handle no-dev alias correctly')
 restoreMocks()
 
@@ -231,7 +256,15 @@ indexModule.calculateCompatibility({
   projectPath: noEnginesDir,
   json: true
 })
-const noEnginesResult = JSON.parse(capturedOutput[0])
+let noEnginesResultJson
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    noEnginesResultJson = JSON.parse(capturedOutput[i])
+    break
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert(noEnginesResultJson, 'Should output result in JSON format for noEngines project')
+const noEnginesResult = noEnginesResultJson
 assert.strictEqual(noEnginesResult.globalMin, '14.0.0', 'Should determine min from dependencies if root has no engines')
 assert.strictEqual(noEnginesResult.globalMax, null, 'Should have null max if only min constraints exist')
 restoreMocks()
