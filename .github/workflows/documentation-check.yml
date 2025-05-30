@@ -1,5 +1,8 @@
 name: Update Documentation Links
 
+permissions:
+  contents: read
+
 on:
   push:
     paths:
