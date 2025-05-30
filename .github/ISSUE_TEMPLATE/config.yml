@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/[username]/node-compat-range-analyzer/blob/main/README.md
+    about: Check the documentation before opening an issue
+  - name: 💬 Questions & Discussions
+    url: https://github.com/[username]/node-compat-range-analyzer/discussions
+    about: Use GitHub Discussions for questions and discussions about the project
