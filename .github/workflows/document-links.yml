@@ -23,19 +23,26 @@ jobs:
           echo "Generating documentation..."
 
       - name: Create a new branch
+        id: create_branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           BRANCH_NAME="update-docs-$(date +%Y%m%d%H%M%S)"
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT # Output branch name for subsequent steps
           git checkout -b $BRANCH_NAME
           git add .
-          git commit -m "Update documentation"
+          # Check if there are any staged changes before attempting the commit
+          if git diff-index --quiet HEAD --; then
+            echo "No changes detected. Skipping commit and push for this step."
+            exit 0 # Exit gracefully if no changes
+          fi
+          git commit -m "Update documentation" # Original commit message
           git push origin $BRANCH_NAME
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          branch: $BRANCH_NAME
+          branch: ${{ steps.create_branch.outputs.branch_name }} # Correctly reference the branch name
           title: "Update Documentation"
           body: "This PR updates the documentation index."
 
@@ -105,3 +112,4 @@ jobs:
           author_email: "actions@github.com"
           message: "docs: update documentation index"
           add: "docs.md"
+          push: true

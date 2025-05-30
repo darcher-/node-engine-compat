@@ -205,6 +205,15 @@ The tool handles errors gracefully, reporting missing files, unparseable JSON, a
 
 ---
 
+## Coverage
+
+<!-- coverage_start -->
+<!-- coverage_end -->
+
+This badge is automatically updated by the CI workflow.
+
+---
+
 ## 💡 Demonstrations
 
 ### Example Project Structure

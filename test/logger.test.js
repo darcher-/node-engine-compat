@@ -1,5 +1,6 @@
-import assert from 'assert'
-import { createRequire } from 'module'
+import assert from 'node:assert'
+import { createRequire } from 'node:module'
+import test from 'node:test'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import logger from '../src/utils/logger.service.js'
@@ -43,74 +44,111 @@ const FG_YELLOW = "\x1b[33m"
 const FG_CYAN = "\x1b[36m"
 const RESET = "\x1b[0m"
 
-// Run tests
-console.log('Testing logger service...')
+test.describe('Logger Service', () => {
+  // Original process.exit to restore later
+  const originalExit = process.exit
+  let exitCalledWith = null;
 
-// Test info method
-setupMocks()
-logger.info('info.determinedRangeMinMax', { globalMin: '14.0.0', globalMax: '16.0.0' })
-assert(consoleOutput.length === 1, 'Should output one line for info message')
-assert(containsColorCode(consoleOutput[0], FG_GREEN), 'Info message should be green')
-assert(containsColorCode(consoleOutput[0], FG_CYAN), 'Highlighted keys should be cyan')
-assert(consoleOutput[0].includes('14.0.0'), 'Message should contain interpolated min value')
-assert(consoleOutput[0].includes('16.0.0'), 'Message should contain interpolated max value')
-restoreMocks()
+  test.beforeEach(() => {
+    setupMocks()
+    exitCalledWith = null
+    // Mock process.exit for tests that might call it
+    // @ts-ignore
+    process.exit = (code) => {
+      exitCalledWith = code
+      // throw new Error('process.exit called'); // Optionally throw to stop execution if needed
+    }
+  })
 
-// Test warn method
-setupMocks()
-logger.warn('info.noConstraintsFound', {})
-assert(consoleOutput.length === 1, 'Should output one line for warn message')
-assert(containsColorCode(consoleOutput[0], FG_YELLOW), 'Warning message should be yellow')
-assert(consoleOutput[0].includes('No specific Node.js version constraints found'), 'Message content should match')
-restoreMocks()
+  test.afterEach(() => {
+    restoreMocks()
+    process.exit = originalExit
+  });
 
-// Test error method
-setupMocks()
-// Mock process.exit to prevent test from exiting
-let exitCode = null
-process.exit = (code) => { exitCode = code; throw new Error('process.exit called') }
-try {
-  logger.error('errors.readParseRootPackageJson', {
-    projectPkgPath: '/path/to/package.json',
-    errorMessage: 'File not found'
-  }, true)
-} catch (e) {
-  // Expected error due to mocked process.exit
-}
-assert(consoleOutput.length > 1, 'Should output multiple lines for structured error message')
-assert(containsColorCode(consoleOutput[0], FG_RED), 'Error message should be red')
-assert(exitCode === 1, 'Should call process.exit with code 1 when exit flag is true')
-process.exit = originalExit
-restoreMocks()
+  test('info method should log green messages with cyan highlights', () => {
+    logger.info('info.determinedRangeMinMax', { globalMin: '14.0.0', globalMax: '16.0.0' })
+    assert.strictEqual(consoleOutput.length, 1, 'Should output one line for info message')
+    assert.ok(containsColorCode(consoleOutput[0], FG_GREEN), 'Info message should be green')
+    assert.ok(containsColorCode(consoleOutput[0], FG_CYAN), 'Highlighted keys should be cyan')
+    assert.ok(consoleOutput[0].includes('14.0.0'), 'Message should contain interpolated min value')
+    assert.ok(consoleOutput[0].includes('16.0.0'), 'Message should contain interpolated max value')
+  })
 
-// Test interpolation with different data types
-setupMocks()
-logger.info('info.dependencyProcessed', {
-  depName: 'test-dep',
-  nodeEngine: '>=14.0.0',
-  min: '14.0.0',
-  max: null
+  test('warn method should log yellow messages', () => {
+    logger.warn('info.noConstraintsFound', {})
+    assert.strictEqual(consoleOutput.length, 1, 'Should output one line for warn message')
+    assert.ok(containsColorCode(consoleOutput[0], FG_YELLOW), 'Warning message should be yellow')
+    assert.ok(consoleOutput[0].includes('No specific Node.js version constraints found'), 'Message content should match')
+  })
+
+  test('error method should log red messages and exit if specified', () => {
+    logger.error('errors.readParseRootPackageJson', {
+      projectPkgPath: '/path/to/package.json',
+      errorMessage: 'File not found'
+    }, true)
+    assert.ok(consoleOutput.length > 1, 'Should output multiple lines for structured error message')
+    assert.ok(containsColorCode(consoleOutput[0], FG_RED), 'Error message should be red')
+    assert.strictEqual(exitCalledWith, 1, 'Should call process.exit with code 1 when exit flag is true')
+  })
+
+  test('error method should not exit if exit flag is false', () => {
+    logger.error('errors.readParseRootPackageJson', {
+      projectPkgPath: '/path/to/package.json',
+      errorMessage: 'File not found'
+    }, false)
+    assert.ok(consoleOutput.length > 1, 'Should output multiple lines for structured error message')
+    assert.ok(containsColorCode(consoleOutput[0], FG_RED), 'Error message should be red')
+    assert.strictEqual(exitCalledWith, null, 'Should not call process.exit when exit flag is false')
+  });
+
+  test('should interpolate different data types correctly', () => {
+    logger.info('info.dependencyProcessed', {
+      depName: 'test-dep',
+      nodeEngine: '>=14.0.0',
+      min: '14.0.0',
+      max: null
+    })
+    assert.ok(consoleOutput[0].includes('test-dep'), 'Should interpolate string value')
+    assert.ok(consoleOutput[0].includes('null'), 'Should convert null to string')
+  });
+
+  test('should log an error for a missing message key', () => {
+    logger.info('info.nonExistentKey', {})
+    assert.strictEqual(consoleOutput.length, 1, 'Should log an error for missing key')
+    assert.ok(consoleOutput[0].includes('Logger Error: Message key not found'), 'Should mention missing key')
+  });
+
+  test('should log structured messages with arrays correctly', () => {
+    logger.error('errors.versionConflict', {
+      globalMin: '16.0.0',
+      globalMax: '14.0.0'
+    }, false)
+    assert.ok(consoleOutput.length > 5, 'Should output multiple lines including arrays in structured message')
+    assert.ok(consoleOutput.some(line => line.includes('This conflict')), 'Should include conflict explanation')
+    assert.ok(consoleOutput.some(line => line.includes('Possible ways to resolve this')), 'Should include solutions array')
+  })
+
+  test('logVerbose should stringify non-string messages when VERBOSE is true', () => {
+    const originalVerbose = process.env.VERBOSE
+    process.env.VERBOSE = "true"
+
+    const testMessageObject = { data: "test", value: 123 }
+    logger.logVerbose("Test Prefix:", testMessageObject)
+
+    assert.strictEqual(consoleOutput.length, 1, "logVerbose should output one line")
+    const expectedStringified = JSON.stringify(testMessageObject, null, 2)
+    // Check if the output *contains* the prefix and the stringified object
+    assert.ok(consoleOutput[0].includes("Test Prefix:"), "Output should contain the prefix")
+    assert.ok(consoleOutput[0].includes(expectedStringified), "Output should contain the stringified object")
+
+    process.env.VERBOSE = originalVerbose
+  });
+
+  test('logVerbose should do nothing when VERBOSE is not true', () => {
+    const originalVerbose = process.env.VERBOSE
+    process.env.VERBOSE = "false" // or undefined
+    logger.logVerbose("Test Prefix:", { data: "test" })
+    assert.strictEqual(consoleOutput.length, 0, "logVerbose should not output anything if VERBOSE is not true")
+    process.env.VERBOSE = originalVerbose
+  })
 })
-assert(consoleOutput[0].includes('test-dep'), 'Should interpolate string value')
-assert(consoleOutput[0].includes('null'), 'Should convert null to string')
-restoreMocks()
-
-// Test missing message key
-setupMocks()
-logger.info('info.nonExistentKey', {})
-assert(consoleOutput.length === 1, 'Should log an error for missing key')
-assert(consoleOutput[0].includes('Logger Error: Message key not found'), 'Should mention missing key')
-restoreMocks()
-
-// Test structured message with arrays
-setupMocks()
-logger.error('errors.versionConflict', {
-  globalMin: '16.0.0',
-  globalMax: '14.0.0'
-}, false)
-assert(consoleOutput.length > 5, 'Should output multiple lines including arrays in structured message')
-assert(consoleOutput.some(line => line.includes('This conflict')), 'Should include conflict explanation')
-assert(consoleOutput.some(line => line.includes('Possible ways to resolve this')), 'Should include solutions array')
-restoreMocks()
-
-console.log('All logger service tests passed!')

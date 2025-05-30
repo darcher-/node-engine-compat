@@ -1,0 +1,135 @@
+import assert from 'assert'
+import { mkdirSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+import indexModule from '../src/index.js'
+import test from 'node:test'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+test('Testing conflict detection functionality', (t) => {
+  // Create a temp directory for testing
+  const tempDir = join(tmpdir(), `conflict-test-${Date.now()}`)
+  mkdirSync(tempDir, { recursive: true })
+  mkdirSync(join(tempDir, 'node_modules', 'conflict-dep'), { recursive: true })
+
+  // Create test package.json files with a conflict
+  const rootPkg = {
+    name: 'conflict-project',
+    dependencies: {
+      'conflict-dep': '1.0.0'
+    },
+    engines: {
+      node: '<14.0.0' // Requires Node.js less than 14.0.0
+    }
+  }
+
+  const depPkg = {
+    name: 'conflict-dep',
+    version: '1.0.0',
+    engines: {
+      node: '>=14.0.0' // Requires Node.js 14.0.0 or greater
+    }
+  }
+
+  writeFileSync(join(tempDir, 'package.json'), JSON.stringify(rootPkg, null, 2))
+  writeFileSync(join(tempDir, 'node_modules', 'conflict-dep', 'package.json'), JSON.stringify(depPkg, null, 2))
+
+  // Mock console.log for capturing JSON output
+  const originalConsoleLog = console.log
+  let capturedOutput = []
+
+  function setupMocks() {
+    capturedOutput = []
+    console.log = (message) => { capturedOutput.push(message) }
+  }
+})
+
+function restoreMocks() {
+  console.log = originalConsoleLog
+}
+
+// Test conflict detection
+console.log('Testing conflict detection...')
+
+// Mock process.exit to prevent test from exiting
+const originalExit = process.exit
+let exitCalled = false
+let exitCode = null
+
+setupMocks()
+
+// Override process.exit for this test
+// @ts-ignore
+process.exit = function(code) {
+  console.log(`Process.exit called with code: ${code}`)
+  exitCalled = true
+  exitCode = code
+  // Don't actually exit
+}
+
+// First run with noExit: true to check the return value
+let functionResult
+try {
+  functionResult = indexModule.calculateCompatibility({
+    projectPath: tempDir,
+    json: true,
+    verbose: false,
+    noExit: true
+  })
+
+  // Since we're using noExit, we should be able to check the result directly
+  assert(functionResult, 'Should return a result object')
+  // It's crucial that src/index.js correctly sets these properties on the object
+  // returned when options.noExit is true. The failure indicates functionResult.conflict is false.
+  assert.strictEqual(functionResult.conflict, true, 'Should detect conflict in the returned result')
+  assert.strictEqual(functionResult.globalMin, '14.0.0', 'Should determine correct min in returned result')
+  // Assuming that in a conflict like <14 vs >=14, the effective min is 14.0.0
+  // and max might be '<14.0.0' or some representation of the narrower conflicting part.
+  // The original test didn't assert functionResult.globalMax, but it's good practice.
+  // Let's ensure this aligns with what jsonOutput.globalMax will be.
+} catch (error) {
+  console.error('Error running calculateCompatibility:', error)
+  throw error // Re-throw to fail the test
+}
+
+// Reset exit tracking
+exitCalled = false
+exitCode = null
+
+// Now run without noExit option to check that process.exit is called
+indexModule.calculateCompatibility({
+  projectPath: tempDir,
+  json: true,
+  verbose: false
+  // Not using noExit option, so it should exit
+})
+
+// Check expectations
+assert(exitCalled, 'Should call process.exit on conflict when in JSON mode')
+assert.strictEqual(exitCode, 1, 'Should exit with code 1 on conflict')
+
+// Check the output format
+assert(capturedOutput.length > 0, 'Should output result in JSON format')
+let jsonOutput
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    jsonOutput = JSON.parse(capturedOutput[i])
+    break;
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert(jsonOutput, 'Should have parsed valid JSON output from console')
+assert.strictEqual(jsonOutput.conflict, true, 'Should detect version conflict')
+assert.strictEqual(jsonOutput.globalMin, '14.0.0', 'Should determine correct min in conflict')
+assert(jsonOutput.message.includes('Version conflict'), 'Should include conflict message')
+if (functionResult) { // If the first part passed, check consistency for globalMax
+  assert.strictEqual(jsonOutput.globalMax, functionResult.globalMax, 'Returned globalMax and JSON globalMax should match for conflict')
+}
+
+// Restore mocks
+process.exit = originalExit
+restoreMocks()
+
+console.log('All conflict detection tests passed!')
