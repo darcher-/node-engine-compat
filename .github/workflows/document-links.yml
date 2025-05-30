@@ -49,21 +49,18 @@ jobs:
             echo "- [Code Owners](.github/CODEOWNERS.md)" >> DOCS.md
           fi
 
-          # Add additional docs from docs directory
-          if [ -d "docs" ]; then
-            echo "" >> DOCS.md
-            echo "## Additional Documentation" >> DOCS.md
-            echo "" >> DOCS.md
+          # Add links to other markdown files
+          echo "" >> DOCS.md
+          echo "## Other Documentation Files" >> DOCS.md
+          echo "" >> DOCS.md
 
-            find docs -name "*.md" | sort | while read file; do
-              title=$(head -n 1 "$file" | sed 's/^#* //')
-              if [ -z "$title" ]; then
-                title=$(basename "$file" .md)
-              fi
-              echo "- [$title]($file)" >> DOCS.md
-            done
+          find . -name "*.md" ! -path "./.github/*" ! -name "DOCS.md" | sort | while read file; do
+            title=$(head -n 1 "$file" | sed 's/^#* //')
+            if [ -z "$title" ]; then
+              title=$(basename "$file" .md)
+            fi
+            echo "- [$title]($file)" >> DOCS.md
           fi
-
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
