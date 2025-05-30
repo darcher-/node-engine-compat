@@ -40,6 +40,9 @@ jobs:
       - name: Generate commit history since base branch
         id: generate-commits
         run: |
+          # Ensure both base and PR branches are fetched
+          git fetch origin ${{ steps.branch-info.outputs.base_branch }} ${{ steps.branch-info.outputs.pr_branch }}
+
           # Create a temporary file for the commit history
           TEMP_FILE=$(mktemp)
 

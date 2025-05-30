@@ -18,6 +18,7 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
+    versioning-strategy: auto
     labels:
       - "dependencies"
       - "github-actions"
