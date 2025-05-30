@@ -52,7 +52,7 @@ jobs:
 
           # Get the commits that are in the PR branch but not in the base branch
           # Using -- separator to properly differentiate between revisions and paths
-          git log --pretty=format:"- %s (%h) by %an" origin/${{ steps.branch-info.outputs.base_branch }}..origin/${{ steps.branch-info.outputs.pr_branch }} -- > $TEMP_FILE
+          git log --pretty=format:"- %s (%h) by %an" origin/${{ steps.branch-info.outputs.base_branch }}..origin/${{ steps.branch-info.outputs.pr_branch }} -- > "$TEMP_FILE"
 
           # Count the commits
           COMMIT_COUNT=$(wc -l < $TEMP_FILE | tr -d ' ')
