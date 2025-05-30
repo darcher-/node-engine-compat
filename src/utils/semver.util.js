@@ -26,8 +26,12 @@ function compareVersions(a, b)
     return 1 // a is greater as b is null
   }
 
-  const pa = String(a).split('.').map(Number) // Limitation: "1.2.3-alpha" -> [1, NaN, NaN]
-  const pb = String(b).split('.').map(Number)
+  // Handle pre-release tags by splitting on hyphen
+  const [aBase, aPrerelease] = String(a).split('-')
+  const [bBase, bPrerelease] = String(b).split('-')
+
+  const pa = aBase.split('.').map(Number)
+  const pb = bBase.split('.').map(Number);
 
   const len = Math.max(pa.length, pb.length)
   for (let i = 0; i < len; i++) {
@@ -41,6 +45,16 @@ function compareVersions(a, b)
     if (na < nb) return -1
     if (na > nb) return 1
   }
+
+  // If base versions are equal, compare pre-release tags
+  if (aPrerelease && !bPrerelease) return -1 // Pre-release is less than release
+  if (!aPrerelease && bPrerelease) return 1  // Release is greater than pre-release
+  if (aPrerelease && bPrerelease) {
+    // Simple string comparison for pre-release tags
+    if (aPrerelease < bPrerelease) return -1
+    if (aPrerelease > bPrerelease) return 1
+  }
+
   return 0 // Versions are equal
 }
 
@@ -92,7 +106,7 @@ function getImpliedBoundsFromOperator(operator, versionString)
   if (operator === '^') {
     if (major > 0) maxExclusive = `${major + 1}.0.0`
     else if (minor > 0) maxExclusive = `0.${minor + 1}.0`
-    else maxExclusive = `0.1.0` // ^0.0.x implies >=0.0.x <0.1.0 (simplified)
+    else maxExclusive = `0.0.${patch + 1}` // ^0.0.x implies >=0.0.x <0.0.(x+1) per SemVer spec
   } else if (operator === '~') {
     if (major > 0 || minor > 0) maxExclusive = `${major}.${minor + 1}.0`
     else maxExclusive = `0.0.${patch + 1}`

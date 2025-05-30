@@ -5,15 +5,17 @@
   },
   "bugs": "https://github.com/darcher-/nodeVersionRange/issues",
   "description": "A CLI library to check the defined node version engines of the project and its dependencies",
+  "dependencies": {
+    "yargs": "18.0.0"
+  },
   "devDependencies": {
     "axe-core": "4.10.3",
-    "eslint": "9.27.0",
+    "eslint": "8.57.0",
     "htmlhint": "1.2.0",
     "markdownlint-cli": "0.45.0",
     "prettier": "3.5.3",
     "standard-version": "^9.5.0",
-    "stylelint": "16.20.0",
-    "yargs": "18.0.0"
+    "stylelint": "16.20.0"
   },
   "eslintConfig": {
     "extends": [
@@ -51,8 +53,8 @@
     "tabWidth": 2
   },
   "engines": {
-    "node": ">=22.16.0",
-    "npm": ">=10.9.2"
+    "node": ">=14.17.0",
+    "npm": ">=6.14.0"
   },
   "files": [
     "src",
@@ -91,7 +93,7 @@
   "scripts": {
     "release": "standard-version",
     "start": "node ./src/index.js",
-    "test": "echo \"No tests specified... yet!\" && exit 0"
+    "test": "node ./test/semver.test.js"
   },
   "source": "src/demo/index.html",
   "type": "module",
