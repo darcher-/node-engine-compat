@@ -1,7 +1,7 @@
 ---
 labels:
-  - color: 006b75
-    description: Pull requests that update GitHub Actions code
+  - color: 4285F4
+    description: 🤖 Pull requests that update GitHub Actions code
     files:
       - .github/**/*.yml
       - .github/**/*.yaml
@@ -23,8 +23,8 @@ labels:
       devops
       continuous integration
       continuous deployment
-  - color: b60205
-    description: Effort on hold
+  - color: FF5252
+    description: ⛔ Effort on hold
     name: blocked
     ref: |
       on hold
@@ -41,8 +41,8 @@ labels:
       dependency blocker
       awaiting input
       blocked by
-  - color: fef2c0
-    description: A change that will break the current functionality
+  - color: FFC107
+    description: ⚠️ A change that will break the current functionality
     files:
       - compat/*
       - src/**/*.js
@@ -64,7 +64,8 @@ labels:
       backward incompatible
       version bump
       major version
-  - description: Ready for review
+  - color: 00BFA5
+    description: 👀 Ready for review
     name: review
     ref: |
       review
@@ -78,8 +79,8 @@ labels:
       feedback wanted
       for your review
       review request
-  - color: b60205
-    description: Merge conflicts
+  - color: F44336
+    description: 💥 Merge conflicts
     name: conflict
     ref: |
       rebase
@@ -92,8 +93,8 @@ labels:
       merge required
       conflicting changes
       branch conflicts
-  - color: d73a4a
-    description: Something isn't working
+  - color: E91E63
+    description: 🐛 Something isn't working
     name: bugfix
     files:
       - src/**/*.js
@@ -123,8 +124,8 @@ labels:
       malfunction
       mistake
       unintended
-  - color: d876e3
-    description: A simple, remedial or mundane task
+  - color: 9E9E9E
+    description: 🧹 A simple, remedial or mundane task
     name: chore
     files:
       - .github/*
@@ -147,8 +148,8 @@ labels:
       version bump
       toolchain
       dependency
-  - color: ededed
-    description: configuration settings
+  - color: 607D8B
+    description: ⚙️ configuration settings
     files:
       - .*
       - "**/*.jsonl"
@@ -183,8 +184,8 @@ labels:
       yaml
       yml
       json
-  - color: 0366d6
-    description: Pull requests that update a dependency file
+  - color: 3F51B5
+    description: 📦 Pull requests that update a dependency file
     files:
       - package.json
       - package-lock.json
@@ -215,8 +216,8 @@ labels:
       security update
       version bump
       dependency update
-  - color: 0075ca
-    description: Improvements or additions to documentation
+  - color: 2196F3
+    description: 📝 Improvements or additions to documentation
     files:
       - \**/*.md
       - .github/*.md
@@ -246,23 +247,23 @@ labels:
       code of conduct
       policy
   - name: "duplicate"
-    description: "This issue or pull request already exists"
-    color: "cfd3d7"
+    description: "👯 This issue or pull request already exists"
+    color: "BDBDBD"
   - name: "enhancement"
-    description: "New feature or request"
-    color: "a2eeef"
+    description: "✨ New feature or request"
+    color: "00BCD4"
   - name: "good first issue"
-    description: "Good for newcomers"
-    color: "7057ff"
+    description: "🔰 Good for newcomers"
+    color: "7B1FA2"
   - name: "help wanted"
-    description: "Extra attention is needed"
-    color: "008672"
+    description: "🆘 Extra attention is needed"
+    color: "009688"
   - name: "invalid"
-    description: "This doesn't seem right"
-    color: "e4e669"
+    description: "❌ This doesn't seem right"
+    color: "CDDC39"
   - name: "logic"
-    description: "Pull requests that update javascript code"
-    color: "f9d0c4"
+    description: "🧠 Pull requests that update javascript code"
+    color: "FF9800"
     files:
       - \**/*.js
       - src/**/*.js
@@ -299,8 +300,8 @@ labels:
       yarn
       pnpm
       package
-  - color: d876e3
-    description: Further information is requested
+  - color: 9C27B0
+    description: ❓ Further information is requested
     name: inconclusive
     ref: |
       inconclusive
@@ -324,8 +325,8 @@ labels:
       please explain
       needs clarification
       what do you mean
-  - color: c5def5
-    description: UI design change(s)
+  - color: 03A9F4
+    description: 🎨 UI design change(s)
     files:
       - "**/*.css"
       - "**/*.scss"
@@ -389,8 +390,8 @@ labels:
       mockup
       wireframe
       prototype
-  - color: ffffff
-    description: This will not be worked on
+  - color: EEEEEE
+    description: 🚫 This will not be worked on
     name: wontfix
     ref: |
       ignore
@@ -421,8 +422,8 @@ labels:
       low priority
       duplicate functionality
       unnecessary
-  - color: 1d76db
-    description: Related to version ranges and semantic versioning
+  - color: 673AB7
+    description: 🔢 Related to version ranges and semantic versioning
     files:
       - src/utils/semver.util.js
       - src/**/*version*.js
@@ -444,8 +445,8 @@ labels:
       version selection
       version conflict
       version parsing
-  - color: 0e8a16
-    description: Related to test coverage and improvements
+  - color: 4CAF50
+    description: 🧪 Related to test coverage and improvements
     files:
       - test/**/*
       - "**/*.test.js"
@@ -473,8 +474,8 @@ labels:
       mock
       stub
       spy
-  - color: fbca04
-    description: Performance improvements and optimizations
+  - color: FF5722
+    description: ⚡ Performance improvements and optimizations
     name: performance
     ref: |
       performance

@@ -1,11 +1,11 @@
-name: Document Links
+name: Documentation Index Generator
 
 on:
   push:
     branches: [main, master]
     paths:
-      - ".github/*.md"
-      - ".github/workflows/document-links.yml"
+      - ".github/**/*.md"
+      - "**/*.md"
   workflow_dispatch:
 
 jobs:
@@ -13,62 +13,76 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: ".nvmrc"
 
       - name: Create docs index
         run: |
-          echo "# Project Documentation" > DOCS.md
-          echo "" >> DOCS.md
-          echo "## Main Documentation" >> DOCS.md
-          echo "" >> DOCS.md
+          echo "# 📚 Project Documentation Index" > docs.md
+          echo "" >> docs.md
+          echo "## Core Documentation" >> docs.md
+          echo "" >> docs.md
 
           # Add links to main documentation files
           if [ -f ".github/CHANGELOG.md" ]; then
-            echo "- [Changelog](.github/CHANGELOG.md)" >> DOCS.md
+            echo "- [Changelog](.github/CHANGELOG.md) - History of all notable changes" >> docs.md
           fi
           if [ -f ".github/CONTRIBUTING.md" ]; then
-            echo "- [Contributing](.github/CONTRIBUTING.md)" >> DOCS.md
+            echo "- [Contributing Guide](.github/CONTRIBUTING.md) - How to contribute to this project" >> docs.md
           fi
           if [ -f ".github/CODE_OF_CONDUCT.md" ]; then
-            echo "- [Code of Conduct](.github/CODE_OF_CONDUCT.md)" >> DOCS.md
+            echo "- [Code of Conduct](.github/CODE_OF_CONDUCT.md) - Community guidelines" >> docs.md
           fi
           if [ -f ".github/SECURITY.md" ]; then
-            echo "- [Security Policy](.github/SECURITY.md)" >> DOCS.md
+            echo "- [Security Policy](.github/SECURITY.md) - How to report security vulnerabilities" >> docs.md
           fi
           if [ -f ".github/LICENSE.md" ]; then
-            echo "- [License](.github/LICENSE.md)" >> DOCS.md
+            echo "- [License](.github/LICENSE.md) - Project license information" >> docs.md
           fi
           if [ -f ".github/CITATION.md" ]; then
-            echo "- [Citation Information](.github/CITATION.md)" >> DOCS.md
+            echo "- [Citation Information](.github/CITATION.md) - How to cite this project" >> docs.md
           fi
           if [ -f ".github/CODEOWNERS.md" ]; then
-            echo "- [Code Owners](.github/CODEOWNERS.md)" >> DOCS.md
+            echo "- [Code Owners](.github/CODEOWNERS.md) - Maintainers and reviewers" >> docs.md
           fi
 
-          # Add additional docs from docs directory
-          if [ -d "docs" ]; then
-            echo "" >> DOCS.md
-            echo "## Additional Documentation" >> DOCS.md
-            echo "" >> DOCS.md
+          # Add links to other markdown files
+          echo "" >> docs.md
+          echo "## Additional Documentation" >> docs.md
+          echo "" >> docs.md
 
-            find docs -name "*.md" | sort | while read file; do
-              title=$(head -n 1 "$file" | sed 's/^#* //')
-              if [ -z "$title" ]; then
-                title=$(basename "$file" .md)
-              fi
-              echo "- [$title]($file)" >> DOCS.md
-            done
+          find . -name "*.md" ! -name "docs.md" ! -path "./.github/*" ! -path "./README.md" | sort | while read file; do
+            filepath=$(echo "$file" | sed 's|^./||')
+            title=$(head -n 1 "$file" | sed 's/^#\s*//' | sed 's/^<!-- filepath:.* -->//')
+            if [ -z "$title" ]; then
+              title=$(basename "$file" .md | sed 's/_/ /g' | sed 's/\b\(.\)/\u\1/g')
+            fi
+            echo "- [$title]($filepath)" >> docs.md
+          done
+
+          # Add README separately with proper formatting
+          if [ -f "README.md" ]; then
+            echo "- [README](README.md) - Project overview and getting started guide" >> docs.md
           fi
+
+          echo "" >> docs.md
+          echo "## Node.js Version Compatibility" >> docs.md
+          echo "" >> docs.md
+          echo "This project provides tools to analyze Node.js version compatibility across your project dependencies." >> docs.md
+          echo "For more detailed information, please refer to the documentation files above." >> docs.md
+          echo "" >> docs.md
+          echo "---" >> docs.md
+          echo "" >> docs.md
+          echo "*This index is automatically generated and updated by GitHub Actions.*" >> docs.md
 
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: GitHub Actions
-          author_email: actions@github.com
+          author_name: "GitHub Actions"
+          author_email: "actions@github.com"
           message: "docs: update documentation index"
-          add: "DOCS.md"
+          add: "docs.md"

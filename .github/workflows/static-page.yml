@@ -1,4 +1,4 @@
-name: Deploy Demo
+name: Deploy Demo Website
 
 on:
   push:
@@ -22,14 +22,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Setup Pages
+      - name: Setup GitHub Pages environment
         uses: actions/configure-pages@v5
-      - name: Upload demo artifact
+      - name: Prepare demo website files
         uses: actions/upload-pages-artifact@v3
         with:
           path: "./src/demo"
-      - name: Deploy to GitHub Pages
+      - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

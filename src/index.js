@@ -3,7 +3,7 @@
 import { join } from 'path'
 import { hideBin } from 'yargs/helpers'
 import yargs from 'yargs/yargs'
-import loggerService from './services/logger.js'
+import loggerService from './utils/logger.service.js'
 import packageUtils from './utils/package.util.js'
 import semverUtils from './utils/semver.util.js'
 

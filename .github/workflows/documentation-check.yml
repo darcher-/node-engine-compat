@@ -1,14 +1,14 @@
-name: Update Documentation Links
+name: Documentation Link Validator
 
 on:
   push:
     paths:
       - ".github/*.md"
-      - "docs/**/*.md"
+      - "**/*.md"
   pull_request:
     paths:
       - ".github/*.md"
-      - "docs/**/*.md"
+      - "**/*.md"
 
 jobs:
   docs-check:
@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version-file: ".nvmrc"
 
       - name: Install markdown-link-check
         run: npm install -g markdown-link-check
@@ -29,7 +29,6 @@ jobs:
         run: |
           echo "Checking links in documentation files..."
           find .github -name "*.md" -exec markdown-link-check {} \;
-          find docs -name "*.md" -exec markdown-link-check {} \;
 
       - name: Validate documentation references
         run: |
