@@ -2,23 +2,42 @@ name: Documentation Index Generator
 
 on:
   push:
-    branches: [main, master]
-    paths:
-      - ".github/**/*.md"
-      - "**/*.md"
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
-  update-docs-index:
+  generate-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up node
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+
+      - name: Generate documentation
+        run: |
+          # Your documentation generation script
+          echo "Generating documentation..."
+
+      - name: Create a new branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH_NAME="update-docs-$(date +%Y%m%d%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          git add .
+          git commit -m "Update documentation"
+          git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: $BRANCH_NAME
+          title: "Update Documentation"
+          body: "This PR updates the documentation index."
 
       - name: Create docs index
         run: |
