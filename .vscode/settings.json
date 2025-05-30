@@ -143,7 +143,7 @@
     "!include_file_json"
   ],
   "yaml.schemas": {
-    "https://raw.githubusercontent.com/helm/charts/master/stable/README.md": "/*.yaml"
+    "https://raw.githubusercontent.com/helm/charts/master/stable/values.schema.json": "/*.yaml"
   },
   "yaml.sort": {
     "enabled": true,
