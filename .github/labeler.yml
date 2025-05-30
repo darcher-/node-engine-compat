@@ -31,6 +31,32 @@ labels:
     color: "0075ca"
     files:
       - \**/*.md
+      - .github/*.md
+      - .github/CHANGELOG.md
+      - .github/CONTRIBUTING.md
+      - .github/CODE_OF_CONDUCT.md
+      - .github/SECURITY.md
+      - .github/LICENSE.md
+      - .github/CITATION.md
+      - .github/CODEOWNERS.md
+      - docs/**/*.md
+    ref: |
+      documentation
+      docs
+      readme
+      guide
+      manual
+      tutorial
+      examples
+      comments
+      changelog
+      contributing
+      security
+      license
+      citation
+      codeowners
+      code of conduct
+      policy
   - name: "duplicate"
     description: "This issue or pull request already exists"
     color: "cfd3d7"

@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Compatibility Range Analysis - Accessible</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+      .content-section {
+        display: none;
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      .table-responsive {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 1px solid #4B5563;
+        /* gray-600 for sufficient border contrast */
+        padding: 0.75rem;
+        /* Increased padding for touch targets / readability */
+        text-align: left;
+      }
+
+      th {
+        background-color: #F3F4F6;
+        /* gray-100 */
+        color: #111827;
+        /* gray-900, for high contrast */
+        font-weight: 600;
+      }
+
+      td {
+        color: #1F2937;
+        /* gray-800 */
+      }
+
+      .mono {
+        font-family: 'Courier New', Courier, monospace;
+        background-color: #F3F4F6;
+        /* gray-100 */
+        color: #111827;
+        /* gray-900 */
+        padding: 0.2em 0.4em;
+        border-radius: 0.25em;
+        font-size: 0.9em;
+        border: 1px solid #D1D5DB;
+        /* gray-300 */
+      }
+
+      .workflow-step {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        border: 1px solid #9CA3AF;
+        /* gray-400 */
+      }
+
+      .workflow-step:hover,
+      .workflow-step:focus-within {
+        background-color: #E0F2FE;
+        /* sky-100 - ensure text inside still has contrast */
+        outline: 2px solid #0284C7;
+        /* sky-600 - focus outline */
+      }
+
+      .workflow-details {
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+      }
+
+      .workflow-details.expanded {
+        display: block;
+        max-height: 500px;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+
+      .nav-link.active {
+        background-color: #FFFFFF;
+        color: #0F172A;
+        /* slate-900 */
+        font-weight: 600;
+        border-left: 4px solid #0284C7;
+        /* sky-600 */
+        padding-left: calc(1rem - 4px);
+      }
+
+      .nav-link:hover:not(.active) {
+        background-color: #1F2937;
+        /* gray-800 */
+        color: #FFFFFF;
+      }
+
+      .nav-link:focus {
+        outline: 2px solid #FFFFFF;
+        outline-offset: -2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #E5E7EB;
+        /* gray-200 */
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #6B7280;
+        /* gray-500 */
+        border-radius: 10px;
+        border: 2px solid #E5E7EB;
+        /* gray-200 to make thumb appear thinner*/
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4B5563;
+        /* gray-600 */
+      }
+
+      .function-nav-link.active {
+        background-color: #BFDBFE;
+        /* blue-200 */
+        color: #1E3A8A;
+        /* blue-900 */
+        font-weight: 600;
+      }
+
+      .function-nav-link:hover:not(.active) {
+        background-color: #374151;
+        /* gray-700 */
+      }
+
+      .loader {
+        border: 4px solid #E5E7EB;
+        /* gray-200 */
+        border-top: 4px solid #0284C7;
+        /* sky-600 */
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .gemini-output {
+        white-space: pre-wrap;
+        background-color: #F0F9FF;
+        /* sky-50 */
+        color: #0C4A6E;
+        /* sky-800 */
+        border-left: 4px solid #0284C7;
+        /* sky-600 */
+        padding: 1rem;
+        margin-top: 1rem;
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      /* Enhanced Focus Styles */
+      *:focus-visible {
+        outline: 3px solid #2563EB !important;
+        /* blue-600 */
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.4) !important;
+        /* Softer outer glow */
+      }
+
+      /* Remove default outline for elements with focus-visible */
+      *:focus {
+        outline: none;
+      }
+
+      .btn {
+        padding: 0.6rem 1.2rem;
+        /* Ensure large enough tap targets */
+        border-radius: 0.375rem;
+        font-weight: 600;
+        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border: 2px solid transparent;
+      }
+
+      .btn-sky {
+        background-color: #075985;
+        /* sky-800 */
+        color: #FFFFFF;
+      }
+
+      .btn-sky:hover,
+      .btn-sky:focus-visible {
+        background-color: #0C4A6E;
+        /* sky-900 */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .btn-teal {
+        background-color: #115E59;
+        /* teal-800 */
+        color: #FFFFFF;
+      }
+
+      .btn-teal:hover,
+      .btn-teal:focus-visible {
+        background-color: #134E4A;
+        /* teal-900 */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .btn-red {
+        background-color: #B91C1C;
+        /* red-700 */
+        color: #FFFFFF;
+      }
+
+      .btn-red:hover,
+      .btn-red:focus-visible {
+        background-color: #991B1B;
+        /* red-800 */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .input-field {
+        border: 2px solid #6B7280;
+        /* gray-500 */
+      }
+
+      .input-field:focus-visible {
+        border-color: #2563EB !important;
+        /* blue-600 */
+      }
+    </style>
+  </head>
+
+  <body class="bg-white text-slate-900">
+    <div class="flex flex-col md:flex-row min-h-screen">
+      <nav
+           class="md:w-72 bg-slate-900 text-white p-5 space-y-2 md:sticky md:top-0 md:self-start md:h-screen overflow-y-auto">
+        <h1 class="text-3xl font-bold mb-6 text-sky-300">Script Analysis ✨</h1>
+        <a href="#" data-section="introduction"
+           class="nav-link block py-3 px-4 rounded-md transition duration-200">👋
+          Introduction</a>
+        <a href="#" data-section="workflow"
+           class="nav-link block py-3 px-4 rounded-md transition duration-200">⚙️
+          Script
+          Workflow</a>
+        <div>
+          <a href="#" data-section="core-functions"
+             class="nav-link block py-3 px-4 rounded-md transition duration-200">🛠️
+            Core Functions</a>
+          <div id="core-functions-submenu" class="ml-4 mt-1 space-y-1 hidden">
+            <a href="#" data-sub-section="dep-discovery"
+               class="function-nav-link block py-2 px-3 rounded-md text-sm text-slate-200 hover:text-white">Dependency
+              Discovery</a>
+            <a href="#" data-sub-section="version-comparison"
+               class="function-nav-link block py-2 px-3 rounded-md text-sm text-slate-200 hover:text-white">Version
+              Comparison</a>
+            <a href="#" data-sub-section="operator-interpretation"
+               class="function-nav-link block py-2 px-3 rounded-md text-sm text-slate-200 hover:text-white">Operator
+              Interpretation</a>
+            <a href="#" data-sub-section="range-parsing"
+               class="function-nav-link block py-2 px-3 rounded-md text-sm text-slate-200 hover:text-white">Range
+              Parsing</a>
+            <a href="#" data-sub-section="aggregation"
+               class="function-nav-link block py-2 px-3 rounded-md text-sm text-slate-200 hover:text-white">Aggregation
+              (main)</a>
+          </div>
+        </div>
+        <a href="#" data-section="logic-tables"
+           class="nav-link block py-3 px-4 rounded-md transition duration-200">📊
+          Logic Tables</a>
+        <a href="#" data-section="strengths-limitations"
+           class="nav-link block py-3 px-4 rounded-md transition duration-200">👍👎
+          Strengths & Limitations</a>
+        <a href="#" data-section="conclusion"
+           class="nav-link block py-3 px-4 rounded-md transition duration-200">📜
+          Conclusion & Recs</a>
+      </nav>
+
+      <main class="flex-1 p-6 md:p-10 bg-white overflow-y-auto">
+        <section id="introduction" class="content-section active space-y-6">
+          <h2
+              class="text-4xl font-bold text-slate-800 border-b-2 border-slate-300 pb-3 mb-4">
+            👋 Welcome to the Node.js
+            Compatibility Script Analysis</h2>
+          <p class="text-lg leading-relaxed text-slate-700">This interactive
+            application provides an in-depth look at a
+            Node.js script designed to determine a consolidated compatible
+            Node.js version range for a project. It now
+            includes ✨ AI-powered features to enhance understanding and provide
+            actionable advice, with styling updated
+            for enhanced accessibility.</p>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Purpose of
+              the Analyzed Script</h3>
+            <p class="text-slate-600 leading-relaxed">The script calculates an
+              effective minimum required and maximum
+              allowed Node.js version satisfying all declared <code
+                    class="mono">engines.node</code> constraints. This is
+              crucial for maintaining stability and compatibility in Node.js
+              projects.</p>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Importance of
+              Node.js Version Management</h3>
+            <p class="text-slate-600 leading-relaxed">Proper Node.js version
+              management is vital for project stability,
+              ensuring packages work together, and leveraging specific language
+              features. Discrepancies can lead to
+              hard-to-diagnose bugs. The <code class="mono">engines</code> field
+              in <code class="mono">package.json</code>
+              allows authors to declare version compatibility, but understanding
+              the overall effective range in complex
+              projects is challenging without tools like the one analyzed here.
+            </p>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">About this
+              Interactive Analysis</h3>
+            <p class="text-slate-600 leading-relaxed">This SPA aims to make the
+              report's findings more accessible and
+              engaging. You can navigate through different aspects of the
+              script's logic, explore its workflow, and even
+              simulate key parsing functions. Newly added ✨ AI features provide
+              plain-language explanations for complex
+              version ranges and suggest strategies for resolving version
+              conflicts. Use the sidebar to explore the
+              various sections.</p>
+          </div>
+        </section>
+
+        <section id="workflow" class="content-section space-y-6">
+          <h2
+              class="text-4xl font-bold text-slate-800 border-b-2 border-slate-300 pb-3 mb-4">
+            ⚙️ Script Workflow Overview
+          </h2>
+          <p class="text-lg leading-relaxed text-slate-700">The script
+            determines the compatible Node.js version range
+            through several distinct phases. Click on each phase to see more
+            details.</p>
+          <div class="space-y-4">
+            <div class="bg-slate-50 p-4 rounded-lg shadow workflow-step">
+              <h3 class="text-xl font-semibold text-slate-700">Phase 1:
+                Initialization & Project <code class="mono">package.json</code>
+                Reading <span class="float-right text-sm text-slate-500"
+                      aria-hidden="true">▼</span></h3>
+              <div class="workflow-details text-slate-600 mt-2 leading-relaxed">
+                <p>The script starts by reading and parsing the <code
+                        class="mono">package.json</code> in the current
+                  directory. It includes error handling for missing or malformed
+                  files.</p>
+              </div>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-lg shadow workflow-step">
+              <h3 class="text-xl font-semibold text-slate-700">Phase 2:
+                Dependency ID & <code class="mono">package.json</code> Retrieval
+                <span class="float-right text-sm text-slate-500"
+                      aria-hidden="true">▼</span>
+              </h3>
+              <div class="workflow-details text-slate-600 mt-2 leading-relaxed">
+                <p>It extracts all <code class="mono">dependencies</code> and
+                  <code class="mono">devDependencies</code>.
+                  Then, it iterates through them, attempting to read and parse
+                  each dependency's <code class="mono">package.json</code> from
+                  <code class="mono">node_modules</code>.
+                </p>
+              </div>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-lg shadow workflow-step">
+              <h3 class="text-xl font-semibold text-slate-700">Phase 3: <code
+                      class="mono">engines.node</code> Parsing &
+                Range Calculation <span
+                      class="float-right text-sm text-slate-500"
+                      aria-hidden="true">▼</span></h3>
+              <div class="workflow-details text-slate-600 mt-2 leading-relaxed">
+                <p>For the project and each dependency, if an <code
+                        class="mono">engines.node</code> field exists, the
+                  script parses its range string. This involves interpreting
+                  SemVer operators (<code class="mono">&gt;=, &lt;, ^, ~</code>)
+                  and logical ORs (<code class="mono">||</code>) to determine an
+                  implied <code class="mono">[minVersion, maxVersion]</code>
+                  pair.</p>
+              </div>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-lg shadow workflow-step">
+              <h3 class="text-xl font-semibold text-slate-700">Phase 4:
+                Aggregation of Version Constraints <span
+                      class="float-right text-sm text-slate-500"
+                      aria-hidden="true">▼</span></h3>
+              <div class="workflow-details text-slate-600 mt-2 leading-relaxed">
+                <p>The script aggregates all individual version constraints to
+                  find the overall highest minimum Node.js
+                  version required (<code class="mono">globalMin</code>) and the
+                  overall lowest maximum allowed (<code
+                        class="mono">globalMax</code>), effectively finding the
+                  most restrictive common window.</p>
+              </div>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-lg shadow workflow-step">
+              <h3 class="text-xl font-semibold text-slate-700">Phase 5:
+                Reporting the Compatible Range <span
+                      class="float-right text-sm text-slate-500"
+                      aria-hidden="true">▼</span></h3>
+              <div class="workflow-details text-slate-600 mt-2 leading-relaxed">
+                <p>Finally, it outputs the calculated <code
+                        class="mono">globalMin</code> and <code
+                        class="mono">globalMax</code>. It also detects and
+                  reports conflicts (e.g., if <code
+                        class="mono">globalMin &gt; globalMax</code>).</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="core-functions" class="content-section space-y-6">
+          <h2
+              class="text-4xl font-bold text-slate-800 border-b-2 border-slate-300 pb-3 mb-4">
+            🛠️ Core Functions Deep Dive
+          </h2>
+          <p class="text-lg leading-relaxed text-slate-700">This section
+            explores the key JavaScript functions within the
+            analyzed script. Use the sub-navigation in the sidebar to select a
+            specific function or group.</p>
+
+          <div id="dep-discovery"
+               class="core-function-sub-section space-y-4 bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Dependency
+              Discovery and Data Retrieval</h3>
+            <p class="mb-2 text-slate-600 leading-relaxed">Two primary functions
+              handle this: <code class="mono">getDeps(pkg)</code> and <code
+                    class="mono">getDepPkgJson(dep)</code>.</p>
+            <div class="border-l-4 border-sky-700 pl-4 py-2 bg-sky-50 rounded">
+              <h4 class="text-xl font-medium text-sky-800"><code
+                      class="mono">getDeps(pkg)</code></h4>
+              <p class="text-slate-600 leading-relaxed">Merges <code
+                      class="mono">pkg.dependencies</code> and <code
+                      class="mono">pkg.devDependencies</code> into a single
+                object. Including <code class="mono">devDependencies</code> is
+                important as build tools, linters, and test frameworks also have
+                Node.js version requirements critical for the development
+                lifecycle.</p>
+            </div>
+            <div
+                 class="border-l-4 border-sky-700 pl-4 py-2 bg-sky-50 rounded mt-4">
+              <h4 class="text-xl font-medium text-sky-800"><code
+                      class="mono">getDepPkgJson(dep)</code></h4>
+              <p class="text-slate-600 leading-relaxed">Reads and parses the
+                <code class="mono">package.json</code> for a
+                named dependency from <code
+                      class="mono">node_modules/DEP_NAME/package.json</code>. It
+                uses <code class="mono">try...catch</code> to handle errors
+                gracefully (e.g., missing file, malformed JSON),
+                logging a warning and returning <code class="mono">null</code>
+                to allow the script to continue processing
+                other dependencies.
+              </p>
+            </div>
+          </div>
+
+          <div id="version-comparison"
+               class="core-function-sub-section space-y-4 bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200"
+               style="display:none;">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Semantic
+              Version Comparison Utilities</h3>
+            <p class="mb-2 text-slate-600 leading-relaxed">Includes <code
+                    class="mono">compareVersions(a, b)</code>, <code
+                    class="mono">minVer(a, b)</code>, and <code
+                    class="mono">maxVer(a, b)</code>.</p>
+            <div class="border-l-4 border-sky-700 pl-4 py-2 bg-sky-50 rounded">
+              <h4 class="text-xl font-medium text-sky-800"><code
+                      class="mono">compareVersions(a, b)</code></h4>
+              <p class="text-slate-600 leading-relaxed">Compares two version
+                strings (e.g., "1.2.3", "1.10.0"). It splits
+                versions by <code class="mono">.</code>, converts parts to
+                numbers, and compares them sequentially.
+                Handles <code class="mono">null</code> inputs.
+                <strong>Limitation:</strong> Does not correctly handle
+                pre-release tags (e.g., <code class="mono">1.2.3-alpha</code>)
+                or build metadata due to using <code
+                      class="mono">Number()</code> which results in <code
+                      class="mono">NaN</code> for non-numeric parts.
+              </p>
+            </div>
+            <div
+                 class="border-l-4 border-sky-700 pl-4 py-2 bg-sky-50 rounded mt-4">
+              <h4 class="text-xl font-medium text-sky-800"><code
+                      class="mono">minVer(a, b)</code> and <code
+                      class="mono">maxVer(a, b)</code></h4>
+              <p class="text-slate-600 leading-relaxed">Utilities that use <code
+                      class="mono">compareVersions</code> to
+                find the minimum or maximum of two version strings. Crucial for
+                aggregating constraints (<code class="mono">globalMin</code> and
+                <code class="mono">globalMax</code>).
+              </p>
+            </div>
+            <div
+                 class="mt-6 p-4 border border-slate-300 rounded-md bg-slate-100">
+              <h4 class="text-lg font-semibold text-slate-700 mb-2">Try <code
+                      class="mono">compareVersions</code> Logic:
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <div>
+                  <label for="compVersionA"
+                         class="block text-sm font-medium text-slate-700 mb-1">Version
+                    A:</label>
+                  <input type="text" id="compVersionA" value="1.2.3"
+                         class="input-field mt-1 block w-full px-3 py-2 bg-white rounded-md shadow-sm sm:text-sm">
+                </div>
+                <div>
+                  <label for="compVersionB"
+                         class="block text-sm font-medium text-slate-700 mb-1">Version
+                    B:</label>
+                  <input type="text" id="compVersionB" value="1.10.0"
+                         class="input-field mt-1 block w-full px-3 py-2 bg-white rounded-md shadow-sm sm:text-sm">
+                </div>
+              </div>
+              <button id="runCompareVersions"
+                      class="btn btn-sky">Compare</button>
+              <p id="compareVersionsResult"
+                 class="mt-3 text-slate-700 p-3 bg-white rounded-md shadow-sm border border-slate-200">
+              </p>
+            </div>
+          </div>
+
+          <div id="operator-interpretation"
+               class="core-function-sub-section space-y-4 bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200"
+               style="display:none;">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Interpreting
+              Caret (<code class="mono">^</code>) and
+              Tilde (<code class="mono">~</code>) Operators</h3>
+            <p class="mb-2 text-slate-600 leading-relaxed">The function <code
+                    class="mono">getImpliedBoundsFromOperator(operator, versionString)</code>
+              translates ranges like <code class="mono">^1.2.3</code> or <code
+                    class="mono">~1.2.3</code> into an explicit minimum
+              (inclusive) and
+              maximum (exclusive) version.</p>
+            <ul
+                class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">
+              <li>The <code class="mono">min</code> is always the input <code
+                      class="mono">versionString</code>.</li>
+              <li>For <code class="mono">^1.2.3</code> (major &gt; 0), <code
+                      class="mono">maxExclusive</code> is <code
+                      class="mono">2.0.0</code>.</li>
+              <li>For <code class="mono">^0.2.3</code> (major=0, minor &gt; 0),
+                <code class="mono">maxExclusive</code> is
+                <code class="mono">0.3.0</code>.
+              </li>
+              <li><strong>Discrepancy:</strong> For <code
+                      class="mono">^0.0.3</code>, script's <code
+                      class="mono">maxExclusive</code> is <code
+                      class="mono">0.1.0</code>. Standard SemVer implies <code
+                      class="mono">&lt;0.0.4</code>. This can lead to overly
+                permissive range calculations by the script.</li>
+              <li>For <code class="mono">~1.2.3</code> or <code
+                      class="mono">~0.2.3</code>, <code
+                      class="mono">maxExclusive</code> is <code
+                      class="mono">X.(Y+1).0</code> (e.g., <code
+                      class="mono">1.3.0</code> for <code
+                      class="mono">~1.2.3</code>).</li>
+              <li>For <code class="mono">~0.0.3</code>, <code
+                      class="mono">maxExclusive</code> is <code
+                      class="mono">0.0.(Z+1)</code> (e.g., <code
+                      class="mono">0.0.4</code> for <code
+                      class="mono">~0.0.3</code>).</li>
+            </ul>
+            <div
+                 class="mt-6 p-4 border border-slate-300 rounded-md bg-slate-100">
+              <h4 class="text-lg font-semibold text-slate-700 mb-2">Simulate
+                <code class="mono">getImpliedBoundsFromOperator</code>:
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <div>
+                  <label for="gibfoOperator"
+                         class="block text-sm font-medium text-slate-700 mb-1">Operator:</label>
+                  <select id="gibfoOperator"
+                          class="input-field mt-1 block w-full px-3 py-2 bg-white rounded-md shadow-sm sm:text-sm">
+                    <option value="^">^ (Caret)</option>
+                    <option value="~">~ (Tilde)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="gibfoVersion"
+                         class="block text-sm font-medium text-slate-700 mb-1">Version
+                    String (e.g.,
+                    1.2.3):</label>
+                  <input type="text" id="gibfoVersion" value="1.2.3"
+                         class="input-field mt-1 block w-full px-3 py-2 bg-white rounded-md shadow-sm sm:text-sm">
+                </div>
+              </div>
+              <button id="runGibfo" class="btn btn-sky">Calculate
+                Bounds</button>
+              <div id="gibfoResult"
+                   class="mt-3 text-slate-700 p-3 bg-white rounded-md shadow-sm border border-slate-200">
+              </div>
+            </div>
+          </div>
+
+          <div id="range-parsing"
+               class="core-function-sub-section space-y-4 bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200"
+               style="display:none;">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Parsing
+              Node.js Engine Range Strings (<code
+                    class="mono">parseNodeRange(range)</code>)</h3>
+            <p class="mb-2 text-slate-600 leading-relaxed">This is the script's
+              most complex function. It interprets an
+              <code class="mono">engines.node</code> string (e.g., <code
+                    class="mono">^14 || ^16</code>, <code
+                    class="mono">&gt;=14.0.0 &lt;15.0.0</code>) and determines
+              its
+              effective minimum and maximum Node.js versions.
+            </p>
+            <div class="border-l-4 border-sky-700 pl-4 py-2 bg-sky-50 rounded">
+              <h4 class="text-xl font-medium text-sky-800">Handling <code
+                      class="mono">||</code> (OR) Conditions:</h4>
+              <p class="text-slate-600 leading-relaxed">Splits range by <code
+                      class="mono">||</code>. Calculates min/max
+                for each part. The overall min is the *lowest* of these
+                part-mins. The overall max is the *highest* of
+                these part-maxs. This creates the widest single continuous range
+                covering all OR'd possibilities (a
+                simplification of true SemVer OR logic which can be disjoint).
+              </p>
+            </div>
+            <div
+                 class="border-l-4 border-sky-700 pl-4 py-2 bg-sky-50 rounded mt-4">
+              <h4 class="text-xl font-medium text-sky-800">Processing Individual
+                Conditions (within an OR part):</h4>
+              <p class="text-slate-600 leading-relaxed">Uses regex <code
+                      class="mono">/([&lt;&gt;]=?|=|~|\^)?\s*([\d.]+)/g</code>
+                to
+                find conditions like <code class="mono">&gt;=14.0.0</code>.
+                <strong>Limitation:</strong> The version regex <code
+                      class="mono">([\d.]+)</code> doesn't handle
+                pre-release tags (e.g., <code class="mono">14.0.0-beta</code>).
+                For AND-conjunctions (e.g., <code
+                      class="mono">&gt;=10 &gt;=12</code>), the effective
+                minimum is
+                the highest
+                (12). For <code class="mono">&lt;15 &lt;17</code>, effective
+                maximum is the lowest (15, exclusive). The
+                returned <code class="mono">maxVersion</code> can be exclusive.
+              </p>
+            </div>
+            <div
+                 class="mt-6 p-4 border border-slate-300 rounded-md bg-slate-100">
+              <h4 class="text-lg font-semibold text-slate-700 mb-2">Simulate
+                <code class="mono">parseNodeRange</code>:
+              </h4>
+              <div>
+                <label for="pnrRange"
+                       class="block text-sm font-medium text-slate-700 mb-1">Node
+                  Engine Range String
+                  (e.g., &gt;=14.0.0 || ^16):</label>
+                <input type="text" id="pnrRange" value="^14 || ^16"
+                       class="input-field mt-1 block w-full px-3 py-2 bg-white rounded-md shadow-sm sm:text-sm">
+              </div>
+              <div class="flex items-center mt-3 space-x-3">
+                <button id="runPnr" class="btn btn-sky">Parse Range (Script
+                  Logic)</button>
+                <button id="explainPnrWithGemini" class="btn btn-teal">✨ Explain
+                  with AI</button>
+                <div id="pnrGeminiLoader" class="loader" style="display: none;">
+                </div>
+              </div>
+              <div id="pnrResult"
+                   class="mt-3 text-slate-700 p-3 bg-white rounded-md shadow-sm border border-slate-200">
+              </div>
+              <div id="pnrGeminiResult" class="gemini-output"
+                   style="display: none;"></div>
+            </div>
+          </div>
+
+          <div id="aggregation"
+               class="core-function-sub-section space-y-4 bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200"
+               style="display:none;">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Aggregating
+              Constraints and Determining Final Range
+              (<code class="mono">main()</code> function)</h3>
+            <p class="mb-2 text-slate-600 leading-relaxed">The <code
+                    class="mono">main()</code> function orchestrates the
+              script, aggregating constraints from the project's <code
+                    class="mono">package.json</code> and all its
+              dependencies.</p>
+            <ul
+                class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">
+              <li>Initializes <code class="mono">globalMin = null</code> and
+                <code class="mono">globalMax = null</code>.
+              </li>
+              <li>Processes each dependency and the project itself:
+                <ul class="list-disc list-inside ml-4 mt-1">
+                  <li>Calls <code class="mono">parseNodeRange</code> for each
+                    <code class="mono">engines.node</code>
+                    string.
+                  </li>
+                  <li>Updates <code
+                          class="mono">globalMin = maxVer(globalMin, min_from_dependency)</code>
+                    (highest
+                    minimum).</li>
+                  <li>Updates <code
+                          class="mono">globalMax = minVer(globalMax, max_from_dependency)</code>
+                    (lowest
+                    maximum).</li>
+                </ul>
+              </li>
+              <li>The nature of <code class="mono">max_from_dependency</code>
+                (inclusive/exclusive) propagates to <code
+                      class="mono">globalMax</code>.</li>
+              <li>Outputs the range (<code
+                      class="mono">&gt;=globalMin &lt;=globalMax</code>).
+                Detects
+                conflicts if <code class="mono">globalMin &gt; globalMax</code>.
+              </li>
+              <li><strong>Output Ambiguity:</strong> Script prints <code
+                      class="mono">&lt;=globalMax</code>, implying
+                inclusive. However, if <code class="mono">globalMax</code> came
+                from an exclusive constraint (e.g., <code
+                      class="mono">&lt;17.0.0</code>), it should be interpreted
+                as "less than", not "less than or equal to".
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="logic-tables" class="content-section space-y-6">
+          <h2
+              class="text-4xl font-bold text-slate-800 border-b-2 border-slate-300 pb-3 mb-4">
+            📊 Interactive Logic Tables
+          </h2>
+          <p class="text-lg leading-relaxed text-slate-700">These tables
+            summarize key logic from the script, based on the
+            report. Some rows may link to the simulators in the "Core Functions"
+            section for hands-on exploration.</p>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-xl font-semibold text-slate-700 mb-3">Table 1: <code
+                    class="mono">getImpliedBoundsFromOperator</code> Logic vs.
+              <code class="mono">node-semver</code>
+            </h3>
+            <p class="text-sm text-slate-600 mb-2 leading-relaxed">Illustrates
+              how the script interprets <code class="mono">^</code> and <code
+                    class="mono">~</code> operators. Click "Try" to pre-fill the
+              simulator.
+            </p>
+            <div class="table-responsive">
+              <table id="table1" class="min-w-full divide-y divide-slate-300">
+                <thead class="bg-slate-100">
+                  <tr>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Operator
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Input
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Script's
+                      Min (Incl.)</th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Script's
+                      Max (Excl.)</th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Note /
+                      Try it</th>
+                  </tr>
+                </thead>
+                <tbody
+                       class="bg-white divide-y divide-slate-300 text-slate-700">
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200 mt-6">
+            <h3 class="text-xl font-semibold text-slate-700 mb-3">Table 2:
+              Script's SemVer Operator Interpretation in
+              <code class="mono">parseNodeRange</code>
+            </h3>
+            <p class="text-sm text-slate-600 mb-2 leading-relaxed">Shows how
+              <code class="mono">parseNodeRange</code>
+              handles various `engines.node` strings. Click "Try" to pre-fill
+              the simulator.
+            </p>
+            <div class="table-responsive">
+              <table id="table2" class="min-w-full divide-y divide-slate-300">
+                <thead class="bg-slate-100">
+                  <tr>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Operator/Syntax</th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Example
+                      `engines.node`</th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Script's
+                      Resulting [Min, Max] (Max type)</th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Note /
+                      Try it</th>
+                  </tr>
+                </thead>
+                <tbody
+                       class="bg-white divide-y divide-slate-300 text-slate-700">
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200 mt-6">
+            <h3 class="text-xl font-semibold text-slate-700 mb-3">Table 3:
+              Overall Range Aggregation Examples</h3>
+            <p class="text-sm text-slate-600 mb-2 leading-relaxed">Demonstrates
+              how <code class="mono">globalMin</code>
+              and <code class="mono">globalMax</code> evolve.</p>
+            <div class="table-responsive">
+              <table id="table3" class="min-w-full divide-y divide-slate-300">
+                <thead class="bg-slate-100">
+                  <tr>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Scenario
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Package
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <code class="mono">engines.node</code>
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Parse
+                      Output [Min, Max] (Type)</th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <code class="mono">globalMin</code> after
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <code class="mono">globalMax</code> after
+                    </th>
+                    <th
+                        class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Final
+                      Range & Notes</th>
+                  </tr>
+                </thead>
+                <tbody
+                       class="bg-white divide-y divide-slate-300 text-slate-700">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="strengths-limitations" class="content-section space-y-6">
+          <h2
+              class="text-4xl font-bold text-slate-800 border-b-2 border-slate-300 pb-3 mb-4">
+            👍👎 Strengths and
+            Limitations</h2>
+          <p class="text-lg leading-relaxed text-slate-700">The script offers
+            several advantages but also has notable
+            limitations, mainly from its custom SemVer parsing.</p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div
+                 class="bg-green-50 p-6 rounded-lg shadow-md border border-green-200">
+              <h3 class="text-2xl font-semibold text-green-700 mb-3">👍
+                Strengths</h3>
+              <ul
+                  class="list-disc list-inside space-y-2 text-green-600 leading-relaxed">
+                <li><strong>Self-Contained:</strong> Uses only built-in Node.js
+                  modules (<code class="mono">fs</code>,
+                  <code class="mono">path</code>), making it portable.
+                </li>
+                <li><strong>Considers <code
+                          class="mono">devDependencies</code>:</strong> Provides
+                  a comprehensive view
+                  for the entire development lifecycle.</li>
+                <li><strong>Handles OR conditions (<code
+                          class="mono">||</code>):</strong> Attempts to resolve
+                  <code class="mono">||</code> into a single encompassing range.
+                </li>
+                <li><strong>Basic SemVer Operators:</strong> Parses common
+                  operators like <code class="mono">&gt;=, &lt;, ^, ~</code>.
+                </li>
+                <li><strong>Conflict Detection:</strong> Clearly reports if
+                  <code class="mono">globalMin &gt; globalMax</code>.
+                </li>
+                <li><strong>Resilient Parsing:</strong> Gracefully handles
+                  errors in individual dependency <code
+                        class="mono">package.json</code> files.</li>
+              </ul>
+            </div>
+            <div
+                 class="bg-red-50 p-6 rounded-lg shadow-md border border-red-200">
+              <h3 class="text-2xl font-semibold text-red-700 mb-3">👎
+                Limitations</h3>
+              <ul
+                  class="list-disc list-inside space-y-2 text-red-600 leading-relaxed">
+                <li><strong>Custom SemVer Logic Deviations:</strong>
+                  <ul class="list-disc list-inside ml-4 mt-1">
+                    <li><strong>Pre-release/Build Metadata:</strong> Does not
+                      correctly parse or compare versions with
+                      tags like <code class="mono">-beta</code> or <code
+                            class="mono">+build</code>.</li>
+                    <li><strong><code class="mono">^0.0.x</code>
+                        Interpretation:</strong> Script's handling (<code
+                            class="mono">&lt;0.1.0</code>) is more permissive
+                      than standard SemVer (<code
+                            class="mono">&lt;0.0.(x+1)</code>).</li>
+                  </ul>
+                </li>
+                <li><strong>Simplification of OR (<code class="mono">||</code>)
+                    Logic:</strong> Its single continuous
+                  range output may not accurately represent disjoint SemVer OR
+                  sets.</li>
+                <li><strong>Output of Exclusive Upper Bounds:</strong> Prints
+                  <code class="mono">&lt;=MAX_VERSION</code>
+                  which can be misleading if <code
+                        class="mono">MAX_VERSION</code> was from an exclusive
+                  constraint.
+                </li>
+                <li><strong>No Support for Complex SemVer:</strong> Lacks
+                  support for X-ranges (<code class="mono">1.2.x</code>) or
+                  hyphen ranges (<code class="mono">1.2.3 - 2.3.4</code>).</li>
+              </ul>
+            </div>
+          </div>
+          <p
+             class="mt-6 p-4 bg-sky-50 text-sky-700 rounded-md border border-sky-200 leading-relaxed">
+            The script provides
+            a pragmatic "80% solution" but lacks the full robustness of
+            dedicated libraries like <code class="mono">node-semver</code> for
+            complex cases.</p>
+        </section>
+
+        <section id="conclusion" class="content-section space-y-6">
+          <h2
+              class="text-4xl font-bold text-slate-800 border-b-2 border-slate-300 pb-3 mb-4">
+            📜 Conclusion and
+            Recommendations</h2>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Summary of
+              Functionality</h3>
+            <p class="text-slate-600 leading-relaxed">The script analyzes <code
+                    class="mono">package.json</code> files
+              (project and direct dependencies) to determine an aggregated,
+              compatible Node.js version range by parsing
+              <code class="mono">engines.node</code> fields and calculating a
+              <code class="mono">globalMin</code> and
+              <code class="mono">globalMax</code>.
+            </p>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Key Findings
+              Recap</h3>
+            <ul
+                class="list-disc list-inside space-y-1 text-slate-600 leading-relaxed">
+              <li>The core aggregation logic (highest min, lowest max) is sound
+                for the common window.</li>
+              <li>Deviations from SemVer 2.0.0 exist, especially for pre-release
+                tags and <code class="mono">^0.0.x</code>
+                ranges.</li>
+              <li>The output <code class="mono">&lt;=globalMax</code> can be
+                ambiguous regarding inclusivity.</li>
+            </ul>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Presentation
+              of Determined Range</h3>
+            <p class="text-slate-600 leading-relaxed">If the script finds <code
+                    class="mono">globalMin = v18.20.8</code>
+              and <code class="mono">globalMax = v20.19.2</code>, it would print
+              <code class="mono">&gt;=18.20.8 &lt;=20.19.2</code>. This could be
+              formatted as: <code
+                    class="mono">(minimum) &gt;= v18.20.8 &lt;= v20.19.2 (maximum)</code>.
+              <strong>Crucial Note:</strong> If <code
+                    class="mono">v20.19.2</code> was from an *exclusive*
+              constraint
+              (e.g., original was <code class="mono">&lt;20.19.2</code>), then
+              <code class="mono">&lt;= v20.19.2</code>
+              should be understood as "less than v20.19.2". The script doesn't
+              make this explicit.
+            </p>
+          </div>
+
+          <div class="bg-red-50 border-l-4 border-red-600 text-red-800 p-6 rounded-md shadow-md"
+               role="alert">
+            <h3 class="text-2xl font-semibold text-red-700 mb-3">🚨 Simulated
+              Conflict & AI Resolution</h3>
+            <p class="leading-relaxed">Imagine the script determined the
+              following conflicting Node.js version
+              requirements for your project:</p>
+            <p class="my-2">Minimum Required: <code class="mono"
+                    id="conflictMinDemo">18.0.0</code></p>
+            <p class="my-2">Maximum Allowed: <code class="mono"
+                    id="conflictMaxDemo">16.0.0</code> (derived from a <code
+                    class="mono">&lt;16.0.0</code> constraint)</p>
+            <p class="mb-3 leading-relaxed">This is a conflict because the
+              minimum required version is higher than the
+              maximum allowed version.</p>
+            <button id="suggestConflictResolution" class="btn btn-red">✨ Suggest
+              Resolution Strategies with AI</button>
+            <div id="conflictGeminiLoader" class="loader mt-2"
+                 style="display: none;"></div>
+            <div id="conflictGeminiResult"
+                 class="gemini-output bg-red-100 border-red-500 text-red-800"
+                 style="display: none;"></div>
+          </div>
+
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200 mt-6">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">
+              Recommendations for Users</h3>
+            <ul
+                class="list-disc list-inside space-y-2 text-slate-600 leading-relaxed">
+              <li><strong>Awareness of Limitations:</strong> Be cautious if your
+                project uses pre-release tags, build
+                metadata, or relies on strict SemVer for <code
+                      class="mono">^0.0.x</code>.</li>
+              <li><strong>Consider Standard Libraries:</strong> For critical
+                precision or complex ranges, use tools
+                leveraging libraries like <code class="mono">node-semver</code>.
+              </li>
+              <li><strong>Careful Interpretation of Max Version:</strong> If
+                <code class="mono">globalMax</code> in output
+                comes from an exclusive range, treat it as "less than" the shown
+                version.
+              </li>
+            </ul>
+          </div>
+          <div
+               class="bg-slate-50 p-6 rounded-lg shadow-md border border-slate-200">
+            <h3 class="text-2xl font-semibold text-slate-700 mb-3">Potential
+              Enhancements</h3>
+            <ul
+                class="list-disc list-inside space-y-2 text-slate-600 leading-relaxed">
+              <li>Integrate the official <code class="mono">semver</code> npm
+                package to improve accuracy.</li>
+              <li>Explicitly handle and indicate exclusive vs. inclusive upper
+                bounds in the output.</li>
+              <li>✨ AI-powered suggestions for updating specific problematic
+                <code class="mono">engines.node</code>
+                entries.
+              </li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const sections = document.querySelectorAll('.content-section');
+      const navLinks = document.querySelectorAll('.nav-link');
+      const coreFunctionsSubMenu = document.getElementById('core-functions-submenu');
+      const functionNavLinks = document.querySelectorAll('.function-nav-link');
+      const coreFunctionSubSections = document.querySelectorAll('.core-function-sub-section');
+
+      const pnrGeminiLoader = document.getElementById('pnrGeminiLoader');
+      const pnrGeminiResult = document.getElementById('pnrGeminiResult');
+      const conflictGeminiLoader = document.getElementById('conflictGeminiLoader');
+      const conflictGeminiResult = document.getElementById('conflictGeminiResult');
+
+      const GEMINI_API_KEY = ""; // Handled by the environment
+
+      async function callGeminiAPI(promptText) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const payload = {
+          contents: [{ role: "user", parts: [{ text: promptText }] }]
+        };
+
+        try
+        {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok)
+          {
+            const errorData = await response.json();
+            console.error("Gemini API Error:", errorData);
+            return `Error: ${errorData.error?.message || response.statusText}. Check console for details.`;
+          }
+          const result = await response.json();
+          if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0)
+          {
+            return result.candidates[0].content.parts[0].text;
+          } else
+          {
+            console.error("Gemini API Error: Unexpected response structure", result);
+            return "Error: Received an unexpected response structure from the AI. Check console for details.";
+          }
+        } catch (error)
+        {
+          console.error("Fetch Error calling Gemini API:", error);
+          return `Error: Could not connect to the AI service. ${error.message}. Check console for details.`;
+        }
+      }
+
+
+      function showSection(sectionId, subSectionId = null) {
+        sections.forEach(section => section.classList.remove('active'));
+        const currentSection = document.getElementById(sectionId);
+        if (currentSection) currentSection.classList.add('active');
+
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.dataset.section === sectionId) link.classList.add('active');
+        });
+
+        const isCoreFunctionSection = sectionId === 'core-functions';
+        coreFunctionsSubMenu.style.display = isCoreFunctionSection ? 'block' : 'none';
+
+        coreFunctionSubSections.forEach(sub => sub.style.display = 'none');
+        functionNavLinks.forEach(link => link.classList.remove('active'));
+
+        if (isCoreFunctionSection)
+        {
+          const targetSubSectionId = subSectionId || 'dep-discovery';
+          const targetSubSection = document.getElementById(targetSubSectionId);
+          if (targetSubSection) targetSubSection.style.display = 'block';
+          const activeFunctionLink = document.querySelector(`.function-nav-link[data-sub-section="${targetSubSectionId}"]`);
+          if (activeFunctionLink) activeFunctionLink.classList.add('active');
+        }
+        // Focus the main heading of the new section for screen readers
+        const mainHeading = currentSection?.querySelector('h2');
+        if (mainHeading)
+        {
+          mainHeading.setAttribute('tabindex', '-1'); // Make it focusable
+          mainHeading.focus();
+        }
+      }
+
+      navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const sectionId = e.target.closest('.nav-link').dataset.section;
+          showSection(sectionId);
+          // document.querySelector('main').scrollTop = 0; // Removed for better focus management
+        });
+      });
+
+      functionNavLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const subSectionId = e.target.closest('.function-nav-link').dataset.subSection;
+          showSection('core-functions', subSectionId);
+        });
+      });
+
+      const workflowSteps = document.querySelectorAll('.workflow-step');
+      workflowSteps.forEach(step => {
+        const header = step.querySelector('h3');
+        const details = step.querySelector('.workflow-details');
+        const icon = step.querySelector('h3 span');
+
+        // Make header focusable and act like a button
+        header.setAttribute('role', 'button');
+        header.setAttribute('tabindex', '0');
+        header.setAttribute('aria-expanded', 'false');
+        header.setAttribute('aria-controls', details.id = details.id || `wf-details-${Math.random().toString(36).substr(2, 9)}`);
+
+
+        const toggleStep = () => {
+          const isExpanded = details.classList.toggle('expanded');
+          header.setAttribute('aria-expanded', isExpanded.toString());
+          if (icon) icon.textContent = isExpanded ? '▲' : '▼';
+        };
+
+        header.addEventListener('click', toggleStep);
+        header.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ')
+          {
+            e.preventDefault();
+            toggleStep();
+          }
+        });
+      });
+
+
+      function simCompareVersions(a, b) {
+        if (!a && !b) return 0;
+        if (!a) return -1;
+        if (!b) return 1;
+        const pa = a.split('.').map(Number);
+        const pb = b.split('.').map(Number);
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++)
+        {
+          const na = pa[i] || 0;
+          const nb = pb[i] || 0;
+          if (isNaN(na) || isNaN(nb)) return "Error: Non-numeric parts in version (pre-release tags not fully supported by this simplified simulator).";
+          if (na < nb) return -1;
+          if (na > nb) return 1;
+        }
+        return 0;
+      }
+
+      document.getElementById('runCompareVersions').addEventListener('click', () => {
+        const versionA = document.getElementById('compVersionA').value;
+        const versionB = document.getElementById('compVersionB').value;
+        const result = simCompareVersions(versionA, versionB);
+        let resultText = `Comparison Result: ${result}. `;
+        if (typeof result === 'number')
+        {
+          if (result === -1) resultText += `(${versionA} is LESS THAN ${versionB})`;
+          else if (result === 1) resultText += `(${versionA} is GREATER THAN ${versionB})`;
+          else resultText += `(${versionA} is EQUAL TO ${versionB})`;
+        } else
+        {
+          resultText = result;
+        }
+        document.getElementById('compareVersionsResult').innerHTML = `Input A: <code class="mono">${versionA}</code>, Input B: <code class="mono">${versionB}</code><br>Output: <code class="mono">${resultText}</code>`;
+      });
+
+      function simGetImpliedBoundsFromOperator(operator, versionString) {
+        const parts = versionString.split('.').map(Number);
+        if (parts.some(isNaN)) return { error: "Invalid version string format. Use numbers separated by dots." };
+        const major = parts[0] || 0;
+        const minor = parts[1] || 0;
+        const patch = parts[2] || 0;
+        let min = versionString;
+        let maxExclusive = null;
+        if (operator === '^')
+        {
+          if (major > 0) maxExclusive = `${major + 1}.0.0`;
+          else if (minor > 0) maxExclusive = `0.${minor + 1}.0`;
+          else maxExclusive = `0.1.0`;
+        } else if (operator === '~')
+        {
+          if (major > 0 || minor > 0) maxExclusive = `${major}.${minor + 1}.0`;
+          else maxExclusive = `0.0.${patch + 1}`;
+        }
+        return { min, maxExclusive };
+      }
+
+      document.getElementById('runGibfo').addEventListener('click', () => {
+        const operator = document.getElementById('gibfoOperator').value;
+        const version = document.getElementById('gibfoVersion').value;
+        const result = simGetImpliedBoundsFromOperator(operator, version);
+        if (result.error)
+        {
+          document.getElementById('gibfoResult').innerHTML = `Error: ${result.error}`;
+        } else
+        {
+          document.getElementById('gibfoResult').innerHTML = `Input: <code class="mono">${operator}${version}</code><br>Min (inclusive): <code class="mono">${result.min}</code><br>Max (exclusive): <code class="mono">${result.maxExclusive}</code>`;
+        }
+      });
+
+      function simParseNodeRange(range) {
+        if (!range) return { min: null, max: null, comment: "No range provided." };
+        let overallMin = null;
+        let overallMax = null;
+        const orParts = range.split('||').map(s => s.trim());
+        for (const partStr of orParts)
+        {
+          if (!partStr) continue;
+          let currentPartMin = null;
+          let currentPartMax = null;
+          if (/^[\d.]+$/.test(partStr))
+          {
+            currentPartMin = partStr;
+            currentPartMax = partStr;
+          } else
+          {
+            const conditions = partStr.match(/([<>]=?|=|~|\^)?\s*([\d.]+)/g) || [];
+            if (conditions.length === 0 && partStr === '*')
+            {
+              if (orParts.length === 1) return { min: "0.0.0", max: null, comment: "Effectively any version (max is unbounded)" };
+            }
+            for (const cond of conditions)
+            {
+              let condMin = null;
+              let condMax = null;
+              if (cond.startsWith('>=')) condMin = cond.substring(2).trim();
+              else if (cond.startsWith('>')) condMin = cond.substring(1).trim();
+              else if (cond.startsWith('<=')) condMax = cond.substring(2).trim();
+              else if (cond.startsWith('<')) condMax = cond.substring(1).trim();
+              else if (cond.startsWith('^') || cond.startsWith('~'))
+              {
+                const op = cond.charAt(0);
+                const v = cond.substring(1).trim();
+                const implied = simGetImpliedBoundsFromOperator(op, v);
+                if (implied.error) return { error: implied.error };
+                condMin = implied.min;
+                condMax = implied.maxExclusive;
+              } else if (/^\d/.test(cond))
+              {
+                condMin = cond.trim();
+                condMax = cond.trim();
+              }
+              if (condMin) currentPartMin = simMaxVer(currentPartMin, condMin);
+              if (condMax) currentPartMax = simMinVer(currentPartMax, condMax);
+            }
+          }
+          if (currentPartMin !== null) overallMin = simMinVer(overallMin, currentPartMin);
+          if (currentPartMax !== null)
+          {
+            if (overallMax === null || (simCompareVersions(currentPartMax, overallMax) === 1 && !isExclusive(currentPartMax)) || (isExclusive(currentPartMax) && (overallMax === null || simCompareVersions(currentPartMax, overallMax) === 1)))
+            {
+              overallMax = currentPartMax;
+            } else if (!isExclusive(currentPartMax) && isExclusive(overallMax) && simCompareVersions(currentPartMax, overallMax) === 0)
+            {
+              overallMax = currentPartMax;
+            }
+          }
+        }
+        let maxComment = "";
+        if (overallMax)
+        {
+          if (range.includes('<') && !range.includes('<=') && range.match(/<\s*([\d.]+)/) && overallMax.endsWith(range.match(/<\s*([\d.]+)/)[1])) maxComment = "(Max is exclusive)";
+          else if (range.includes('^') && overallMax.endsWith(".0.0") && !overallMax.startsWith("0.0.")) maxComment = "(Max is exclusive)";
+          else if (range.includes('~') && overallMax.match(/\.\d+\.0$/) && !overallMax.startsWith("0.0.")) maxComment = "(Max is exclusive)";
+        }
+        return { min: overallMin, max: overallMax, comment: maxComment || (overallMax ? "(Max type depends on specific rule that set it)" : "(Max is unbounded)") };
+      }
+      function isExclusive(versionStr) { return false; }
+      function simMinVer(a, b) {
+        if (!a) return b;
+        if (!b) return a;
+        return simCompareVersions(a, b) < 0 ? a : b;
+      }
+      function simMaxVer(a, b) {
+        if (!a) return b;
+        if (!b) return a;
+        return simCompareVersions(a, b) > 0 ? a : b;
+      }
+
+      document.getElementById('runPnr').addEventListener('click', () => {
+        const range = document.getElementById('pnrRange').value;
+        const result = simParseNodeRange(range);
+        const pnrResultEl = document.getElementById('pnrResult');
+        if (result.error)
+        {
+          pnrResultEl.innerHTML = `Error: ${result.error}`;
+        } else
+        {
+          pnrResultEl.innerHTML =
+            `Input Range: <code class="mono">${range}</code><br>` +
+            `Simulated Min (Script Logic): <code class="mono">${result.min || 'null'}</code><br>` +
+            `Simulated Max (Script Logic): <code class="mono">${result.max || 'null'}</code> <em class="text-sm">${result.comment}</em>`;
+        }
+        pnrGeminiResult.style.display = 'none';
+        pnrGeminiResult.textContent = '';
+      });
+
+      document.getElementById('explainPnrWithGemini').addEventListener('click', async () => {
+        const range = document.getElementById('pnrRange').value;
+        if (!range.trim())
+        {
+          pnrGeminiResult.textContent = "Please enter a Node engine range string first.";
+          pnrGeminiResult.style.display = 'block';
+          return;
+        }
+        pnrGeminiLoader.style.display = 'inline-block';
+        pnrGeminiResult.style.display = 'none';
+        pnrGeminiResult.textContent = '';
+
+        const prompt = `Explain the following Node.js engines.node range string in simple terms for a developer, outlining what versions it allows and any common interpretations or gotchas: "${range}"`;
+        const explanation = await callGeminiAPI(prompt);
+
+        pnrGeminiResult.textContent = explanation;
+        pnrGeminiLoader.style.display = 'none';
+        pnrGeminiResult.style.display = 'block';
+      });
+
+      document.getElementById('suggestConflictResolution').addEventListener('click', async () => {
+        const minConflict = document.getElementById('conflictMinDemo').textContent;
+        const maxConflict = document.getElementById('conflictMaxDemo').textContent;
+
+        conflictGeminiLoader.style.display = 'inline-block';
+        conflictGeminiResult.style.display = 'none';
+        conflictGeminiResult.textContent = '';
+
+        const prompt = `A Node.js project has a calculated minimum required Node version of "${minConflict}" but a maximum allowed version of "${maxConflict}". This is a conflict. Provide actionable strategies or advice for a developer to resolve this version conflict in their project's dependencies. Please format the advice as a list of steps or options.`;
+        const suggestions = await callGeminiAPI(prompt);
+
+        conflictGeminiResult.textContent = suggestions;
+        conflictGeminiLoader.style.display = 'none';
+        conflictGeminiResult.style.display = 'block';
+      });
+
+
+      const table1Data = [
+        { op: '^', input: '1.2.3', scriptMin: '1.2.3', scriptMaxExcl: '2.0.0', note: '' },
+        { op: '^', input: '0.2.3', scriptMin: '0.2.3', scriptMaxExcl: '0.3.0', note: '' },
+        { op: '^', input: '0.0.3', scriptMin: '0.0.3', scriptMaxExcl: '0.1.0', note: 'Differs from node-semver (<0.0.4-0)' },
+        { op: '~', input: '1.2.3', scriptMin: '1.2.3', scriptMaxExcl: '1.3.0', note: '' },
+        { op: '~', input: '0.2.3', scriptMin: '0.2.3', scriptMaxExcl: '0.3.0', note: '' },
+        { op: '~', input: '0.0.3', scriptMin: '0.0.3', scriptMaxExcl: '0.0.4', note: '' },
+      ];
+      const table1Body = document.getElementById('table1').getElementsByTagName('tbody')[0];
+      table1Data.forEach(item => {
+        let row = table1Body.insertRow();
+        row.insertCell().innerHTML = `<code class="mono">${item.op}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.input}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.scriptMin}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.scriptMaxExcl}</code>`;
+        const tryButton = `<button class="try-gibfo text-xs bg-sky-100 hover:bg-sky-200 text-sky-700 py-1 px-2 rounded-md border border-sky-300" data-op="${item.op}" data-version="${item.input}">Try</button>`;
+        row.insertCell().innerHTML = `${item.note} ${tryButton}`;
+      });
+      document.querySelectorAll('.try-gibfo').forEach(button => {
+        button.addEventListener('click', function () {
+          const op = this.dataset.op;
+          const version = this.dataset.version;
+          showSection('core-functions', 'operator-interpretation');
+          document.getElementById('gibfoOperator').value = op;
+          document.getElementById('gibfoVersion').value = version;
+          document.getElementById('runGibfo').click();
+          document.getElementById('gibfoResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+
+      const table2Data = [
+        { syntax: '>=', example: '>=14.0.0', result: '["14.0.0", null]', note: '' },
+        { syntax: '<', example: '<16.0.0', result: '[null, "16.0.0"] (Exclusive)', note: '' },
+        { syntax: '^ (major &gt; 0)', example: '^14.2.0', result: '["14.2.0", "15.0.0"] (Exclusive)', note: '' },
+        { syntax: '^ (0.0.x)', example: '^0.0.3', result: '["0.0.3", "0.1.0"] (Exclusive)', note: 'Script interpretation differs' },
+        { syntax: '~', example: '~14.2.0', result: '["14.2.0", "14.3.0"] (Exclusive)', note: '' },
+        { syntax: 'Exact', example: '14.17.0', result: '["14.17.0", "14.17.0"] (Inclusive)', note: '' },
+        { syntax: '*', example: '*', result: '[null, null]', note: 'Represents no constraint' },
+        { syntax: 'AND', example: '>=14 <15', result: '["14.0.0", "15.0.0"] (Exclusive)', note: 'Assumes .0.0 parts' },
+        { syntax: '||', example: '^14 || ^16', result: '["14.0.0", "17.0.0"] (Exclusive)', note: 'Script aims to cover all ORs' },
+      ];
+      const table2Body = document.getElementById('table2').getElementsByTagName('tbody')[0];
+      table2Data.forEach(item => {
+        let row = table2Body.insertRow();
+        row.insertCell().innerHTML = `<code class="mono">${item.syntax}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.example}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.result}</code>`;
+        const tryButton = `<button class="try-pnr text-xs bg-sky-100 hover:bg-sky-200 text-sky-700 py-1 px-2 rounded-md border border-sky-300" data-range="${item.example}">Try</button>`;
+        row.insertCell().innerHTML = `${item.note} ${tryButton}`;
+      });
+      document.querySelectorAll('.try-pnr').forEach(button => {
+        button.addEventListener('click', function () {
+          const range = this.dataset.range;
+          showSection('core-functions', 'range-parsing');
+          document.getElementById('pnrRange').value = range;
+          document.getElementById('runPnr').click();
+          document.getElementById('pnrResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+
+      const table3Data = [
+        { scenario: 'Basic Intersection', pkg: 'Project', engines: '>=14.0.0', parse: '["14.0.0", null]', gmin: '14.0.0', gmax: 'null', final: '' },
+        { scenario: '', pkg: 'Dep A', engines: '>=12.0.0 <16.0.0', parse: '["12.0.0", "16.0.0"] (Excl)', gmin: '14.0.0', gmax: '16.0.0 (Excl)', final: '>=14.0.0 <=16.0.0 (Note: 16.0.0 exclusive)' },
+        { scenario: 'Caret & Tilde', pkg: 'Project', engines: '^14.0.0', parse: '["14.0.0", "15.0.0"] (Excl)', gmin: '14.0.0', gmax: '15.0.0 (Excl)', final: '' },
+        { scenario: '', pkg: 'Dep A', engines: '~14.2.0', parse: '["14.2.0", "14.3.0"] (Excl)', gmin: '14.2.0', gmax: '14.3.0 (Excl)', final: '>=14.2.0 <=14.3.0 (Note: 14.3.0 exclusive)' },
+        { scenario: 'Conflicting Req.', pkg: 'Project', engines: '>=16.0.0', parse: '["16.0.0", null]', gmin: '16.0.0', gmax: 'null', final: '' },
+        { scenario: '', pkg: 'Dep A', engines: '<15.0.0', parse: '[null, "15.0.0"] (Excl)', gmin: '16.0.0', gmax: '15.0.0 (Excl)', final: 'Error: Conflict (min 16.0.0, max <15.0.0)' },
+        { scenario: 'OR condition', pkg: 'Project', engines: '>=14.0.0', parse: '["14.0.0", null]', gmin: '14.0.0', gmax: 'null', final: '' },
+        { scenario: '', pkg: 'Dep A', engines: '^12.0.0 || ^16.0.0', parse: '["12.0.0", "17.0.0"] (Excl)', gmin: '14.0.0', gmax: '17.0.0 (Excl)', final: '>=14.0.0 <=17.0.0 (Note: 17.0.0 exclusive)' },
+        { scenario: 'Unbounded Max', pkg: 'Project', engines: '>=18.0.0', parse: '["18.0.0", null]', gmin: '18.0.0', gmax: 'null', final: '>=18.0.0' },
+      ];
+      const table3Body = document.getElementById('table3').getElementsByTagName('tbody')[0];
+      table3Data.forEach(item => {
+        let row = table3Body.insertRow();
+        row.insertCell().textContent = item.scenario;
+        row.insertCell().textContent = item.pkg;
+        row.insertCell().innerHTML = `<code class="mono">${item.engines}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.parse}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.gmin}</code>`;
+        row.insertCell().innerHTML = `<code class="mono">${item.gmax}</code>`;
+        row.insertCell().textContent = item.final;
+      });
+
+      showSection('introduction');
+    </script>
+  </body>
+
+</html>

@@ -1,0 +1,74 @@
+name: Document Links
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - ".github/*.md"
+      - ".github/workflows/document-links.yml"
+  workflow_dispatch:
+
+jobs:
+  update-docs-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Create docs index
+        run: |
+          echo "# Project Documentation" > DOCS.md
+          echo "" >> DOCS.md
+          echo "## Main Documentation" >> DOCS.md
+          echo "" >> DOCS.md
+
+          # Add links to main documentation files
+          if [ -f ".github/CHANGELOG.md" ]; then
+            echo "- [Changelog](.github/CHANGELOG.md)" >> DOCS.md
+          fi
+          if [ -f ".github/CONTRIBUTING.md" ]; then
+            echo "- [Contributing](.github/CONTRIBUTING.md)" >> DOCS.md
+          fi
+          if [ -f ".github/CODE_OF_CONDUCT.md" ]; then
+            echo "- [Code of Conduct](.github/CODE_OF_CONDUCT.md)" >> DOCS.md
+          fi
+          if [ -f ".github/SECURITY.md" ]; then
+            echo "- [Security Policy](.github/SECURITY.md)" >> DOCS.md
+          fi
+          if [ -f ".github/LICENSE.md" ]; then
+            echo "- [License](.github/LICENSE.md)" >> DOCS.md
+          fi
+          if [ -f ".github/CITATION.md" ]; then
+            echo "- [Citation Information](.github/CITATION.md)" >> DOCS.md
+          fi
+          if [ -f ".github/CODEOWNERS.md" ]; then
+            echo "- [Code Owners](.github/CODEOWNERS.md)" >> DOCS.md
+          fi
+
+          # Add additional docs from docs directory
+          if [ -d "docs" ]; then
+            echo "" >> DOCS.md
+            echo "## Additional Documentation" >> DOCS.md
+            echo "" >> DOCS.md
+
+            find docs -name "*.md" | sort | while read file; do
+              title=$(head -n 1 "$file" | sed 's/^#* //')
+              if [ -z "$title" ]; then
+                title=$(basename "$file" .md)
+              fi
+              echo "- [$title]($file)" >> DOCS.md
+            done
+          fi
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: GitHub Actions
+          author_email: actions@github.com
+          message: "docs: update documentation index"
+          add: "DOCS.md"

@@ -1,0 +1,68 @@
+name: Update Documentation Links
+
+on:
+  push:
+    paths:
+      - ".github/*.md"
+      - "docs/**/*.md"
+  pull_request:
+    paths:
+      - ".github/*.md"
+      - "docs/**/*.md"
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install markdown-link-check
+        run: npm install -g markdown-link-check
+
+      - name: Check documentation links
+        run: |
+          echo "Checking links in documentation files..."
+          find .github -name "*.md" -exec markdown-link-check {} \;
+          find docs -name "*.md" -exec markdown-link-check {} \;
+
+      - name: Validate documentation references
+        run: |
+          echo "Validating documentation references..."
+
+          # Check for references to documentation files
+          missing_files=()
+
+          # List of standard documentation files
+          docs=(
+            ".github/CHANGELOG.md"
+            ".github/CONTRIBUTING.md"
+            ".github/CODE_OF_CONDUCT.md"
+            ".github/SECURITY.md"
+            ".github/LICENSE.md"
+            ".github/CITATION.md"
+            ".github/CODEOWNERS.md"
+          )
+
+          # Check if each file exists
+          for doc in "${docs[@]}"; do
+            if [ ! -f "$doc" ]; then
+              missing_files+=("$doc")
+            fi
+          done
+
+          # Report missing files
+          if [ ${#missing_files[@]} -gt 0 ]; then
+            echo "⚠️ The following standard documentation files are missing:"
+            for file in "${missing_files[@]}"; do
+              echo "  - $file"
+            done
+            echo "Consider creating these files to improve your project documentation."
+          else
+            echo "✅ All standard documentation files are present."
+          fi
