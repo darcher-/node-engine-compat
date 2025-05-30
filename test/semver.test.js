@@ -51,6 +51,7 @@ test.describe('Semver Utilities', () => {
     test('minVer should return the smaller version', () => {
       assert.strictEqual(semverUtils.minVer('1.2.3', '1.2.4'), '1.2.3')
       assert.strictEqual(semverUtils.minVer('1.2.3', null), '1.2.3')
+      assert.strictEqual(semverUtils.minVer(null, '1.2.3'), '1.2.3')
       assert.strictEqual(semverUtils.minVer(null, null), null)
     })
     test('maxVer should return the larger version', () => {
@@ -86,6 +87,14 @@ test.describe('Semver Utilities', () => {
     })
     test('OR conditions', () => {
       assert.deepStrictEqual(semverUtils.parseNodeRange('>=14.0.0 <16.0.0 || >=18.0.0'), ['14.0.0', null])
+      // Test cases for OR logic branches (not special-cased)
+      // Hits: overallMin = null, currentPartMin != null (line 179) -> then overallMin != null, currentPartMin != null (line 180)
+      assert.deepStrictEqual(semverUtils.parseNodeRange('>=10.0.0 || >=12.0.0'), ['10.0.0', null], "OR case 1")
+      // Hits: overallMin = null, currentPartMin != null (line 179)
+      assert.deepStrictEqual(semverUtils.parseNodeRange('<=10.0.0 || >=12.0.0'), ['12.0.0', null], "OR case 2: min of (null, 12) is 12, max of (10, null) is null")
+      // Hits: overallMin != null, currentPartMin = null (else branch of line 180)
+      assert.deepStrictEqual(semverUtils.parseNodeRange('>=10.0.0 || <5.0.0'), ['10.0.0', '5.0.0'], "OR case 3: min of (10, null) is 10, max of (null, 5) is 5 -> conflict")
+
     })
     test('edge cases', () => {
       assert.deepStrictEqual(semverUtils.parseNodeRange(''), [null, null])
