@@ -1,62 +1,604 @@
+---
 labels:
-  - name: "automation"
-    description: "Pull requests that update GitHub Actions code"
-    color: "006b75"
+  - color: 006b75
+    description: Pull requests that update GitHub Actions code
     files:
-      - .github/workflows/*
-  - name: "blocked"
-    description: "Effort on hold"
-    color: "b60205"
-  - name: "bug"
-    description: "Something isn't working"
-    color: "d73a4a"
-  - name: "chore"
-    description: "A simple, remedial or mundane task"
-    color: "d876e3"
-  - name: "config"
-    description: "configuration settings"
-    color: "ededed"
+      - .github/**/*.yml
+      - .github/**/*.yaml
+      - .github/**/*.json
+      - .github/workflows/**
+      - .github/actions/**
+      - .github/workflows/*.yml
+      - .github/actions/*.js
+      - action.yml
+      - .github/action.yml
+    name: automation
+    ref: |
+      automation
+      github actions
+      workflows
+      ci
+      cd
+      pipeline
+      devops
+      continuous integration
+      continuous deployment
+  - color: b60205
+    description: Effort on hold
+    name: blocked
+    ref: |
+      on hold
+      blocked
+      blocker
+      waiting
+      postponed
+      delayed
+      pending
+      stalled
+      halt
+      paused
+      suspend
+      dependency blocker
+      awaiting input
+      blocked by
+  - color: fef2c0
+    description: A change that will break the current functionality
     files:
-      - \**/*.json
-      - \**/*.yml
-  - name: "dependency"
-    description: "Pull requests that update a dependency file"
-    color: "0366d6"
+      - compat/*
+      - src/**/*.js
+      - src/utils/*.js
+      - src/services/*.js
+    name: incompatible
+    ref: |
+      incompatible
+      support
+      not backwards compatible
+      breaking change
+      semver major
+      api change
+      interface change
+      deprecated
+      deprecation
+      migration required
+      upgrade path
+      backward incompatible
+      version bump
+      major version
+  - description: Ready for review
+    name: review
+    ref: |
+      review
+      ready for review
+      code review
+      please review
+      pr ready
+      needs review
+      ready to merge
+      review needed
+      feedback wanted
+      for your review
+      review request
+  - color: b60205
+    description: Merge conflicts
+    name: conflict
+    ref: |
+      rebase
+      merge conflict
+      conflict
+      needs rebase
+      resolve conflicts
+      conflicts
+      git conflict
+      merge required
+      conflicting changes
+      branch conflicts
+  - color: d73a4a
+    description: Something isn't working
+    name: bugfix
+    files:
+      - src/**/*.js
+      - src/utils/*.js
+      - src/services/*.js
+    ref: |
+      bug
+      bugfix
+      fix
+      issue
+      warning
+      error
+      problem
+      defect
+      broken
+      not working
+      regression
+      crash
+      unexpected behavior
+      edge case
+      exception
+      failure
+      fault
+      glitch
+      incorrect
+      invalid
+      malfunction
+      mistake
+      unintended
+  - color: d876e3
+    description: A simple, remedial or mundane task
+    name: chore
+    files:
+      - .github/*
+      - .gitignore
+      - .eslintrc*
+      - .prettier*
+    ref: |
+      chore/*
+      chore
+      maintenance
+      housekeeping
+      cleanup
+      tidy
+      refactor
+      tooling
+      build
+      ci
+      routine
+      dependency update
+      version bump
+      toolchain
+      dependency
+  - color: ededed
+    description: configuration settings
+    files:
+      - .*
+      - "**/*.jsonl"
+      - "**/*.json5"
+      - "**/*.json"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.toml"
+      - "**/*.ini"
+      - "**/*.config.js"
+      - "**/*.config.ts"
+      - "config/**/*"
+      - ".env*"
+      - ".npmrc"
+      - ".nvmrc"
+      - ".babelrc*"
+      - "tsconfig.json"
+      - "jest.config.*"
+    name: config
+    ref: |
+      config
+      configuration
+      settings
+      setup
+      preferences
+      options
+      environment
+      env
+      dotfile
+      ini
+      toml
+      yaml
+      yml
+      json
+  - color: 0366d6
+    description: Pull requests that update a dependency file
     files:
       - package.json
       - package-lock.json
       - npm-shrinkwrap.json
-  - name: "documentation"
-    description: "Improvements or additions to documentation"
-    color: "0075ca"
+      - yarn.lock
+      - pnpm-lock.yaml
+      - "**/*requirements*.txt"
+      - "Gemfile*"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "go.mod"
+      - "go.sum"
+    name: dependency
+    ref: |
+      dependencies
+      deps
+      dependency
+      npm
+      yarn
+      pnpm
+      pip
+      gems
+      cargo
+      modules
+      packages
+      requirements
+      update dependencies
+      security update
+      version bump
+      dependency update
+  - color: 0075ca
+    description: Improvements or additions to documentation
     files:
-      - \**/*.md
-  - name: "duplicate"
-    description: "This issue or pull request already exists"
-    color: "cfd3d7"
-  - name: "enhancement"
-    description: "New feature or request"
-    color: "a2eeef"
-  - name: "good first issue"
-    description: "Good for newcomers"
-    color: "7057ff"
-  - name: "help wanted"
-    description: "Extra attention is needed"
-    color: "008672"
-  - name: "invalid"
-    description: "This doesn't seem right"
-    color: "e4e669"
-  - name: "logic"
-    description: "Pull requests that update javascript code"
-    color: "f9d0c4"
+      - "**/*.markdown"
+      - "**/*.mdx"
+      - "**/*.md"
+      - "docs/**/*"
+      - "**/*.txt"
+      - "**/*.rst"
+      - "**/*.adoc"
+      - "**/*.asciidoc"
+      - "**/README*"
+      - "**/CHANGELOG*"
+      - "**/CONTRIBUTING*"
+      - "**/LICENSE*"
+      - "**/SECURITY*"
+    name: documentation
+    ref: |
+      documentation
+      docs
+      readme
+      guide
+      manual
+      tutorial
+      examples
+      comments
+      comment
+      reference
+      api docs
+      jsdoc
+      tsdoc
+      javadoc
+      annotation
+      help
+      how-to
+      examples
+      sample
+  - color: cfd3d7
+    description: This issue or pull request already exists
+    name: duplicate
+    ref: |
+      duplicate
+      dup
+      dupe
+      already exists
+      already reported
+      existing issue
+      same as
+      similar to
+      identical
+      redundant
+      repeat
+      previously reported
+      existing PR
+  - color: a2eeef
+    description: New feature or request
+    name: enhancement
+    files:
+      - "src/**/*.js"
+      - "src/utils/*.js"
+      - "src/services/*.js"
+    ref: |
+      improvement
+      enhancement
+      feature
+      feat
+      new
+      add
+      request
+      proposal
+      idea
+      wishlist
+      implement
+      functionality
+      capability
+      extend
+      extension
+      new feature
+      addition
+      roadmap
+      backlog
+      suggestion
+      usability
+      ux
+      convenience
+  - color: 7057ff
+    description: Good for newcomers
+    name: good first issue
+    ref: |
+      small
+      easy
+      good first issue
+      beginner
+      new
+      starter
+      first-timers-only
+      up-for-grabs
+      newcomer
+      newbie
+      entry-level
+      trivial
+      simple
+      low-hanging-fruit
+      straightforward
+      introduction
+      starter task
+      beginner friendly
+      good-first-contribution
+      help-wanted-easy
+  - color: 8672
+    description: Extra attention is needed
+    name: help wanted
+    ref: |
+      help
+      sos
+      assistance needed
+      need help
+      contributors welcome
+      seeking help
+      up for grabs
+      looking for input
+      seeking contributors
+      contribution welcome
+      help appreciated
+      feedback wanted
+      suggestions welcome
+      team effort
+      collaboration
+      need expertise
+      need review
+      expert needed
+  - color: e4e669
+    description: This doesn't seem right
+    name: invalid
+    ref: |
+      invalid
+      ignore
+      wrong
+      avoid
+      mistake
+      incorrect
+      not valid
+      malformed
+      improper
+      erroneous
+      flawed
+      unusable
+      nonsense
+      spam
+      irrelevant
+      off-topic
+      out of scope
+      inappropriate
+      misguided
+  - color: f9d0c4
+    description: Pull requests that update javascript code
     files:
       - \**/*.js
-  - name: "question"
-    description: "Further information is requested"
-    color: "d876e3"
-  - name: "stylistic"
-    description: "UI design change(s)"
-    color: "c5def5"
-  - name: "wontfix"
-    description: "This will not be worked on"
-    color: "ffffff"
+      - src/**/*.js
+      - src/utils/*.js
+      - src/services/*.js
+      - src/**/*.ts
+      - src/**/*.jsx
+      - src/**/*.tsx
+      - src/**/*.mjs
+      - src/**/*.cjs
+    name: functional
+    ref: |
+      functional
+      js
+      javascript
+      nodejs
+      node.js
+      ts
+      typescript
+      ecmascript
+      v8
+      es6
+      es2015
+      es2016
+      es2017
+      es2018
+      es2019
+      es2020
+      es2021
+      react
+      jsx
+      module
+      commonjs
+      npm
+      yarn
+      pnpm
+      package
+  - color: d876e3
+    description: Further information is requested
+    name: inconclusive
+    ref: |
+      inconclusive
+      question
+      scope
+      wanting
+      ask
+      unclear
+      need more info
+      more details needed
+      cannot reproduce
+      ambiguous
+      vague
+      clarification
+      elaboration
+      explanation
+      details missing
+      insufficient information
+      context needed
+      steps to reproduce
+      please explain
+      needs clarification
+      what do you mean
+  - color: c5def5
+    description: UI design change(s)
+    files:
+      - "**/*.css"
+      - "**/*.scss"
+      - "**/*.sass"
+      - "**/*.less"
+      - "**/*.styl"
+      - "**/*.svg"
+      - "**/*.png"
+      - "**/*.jpg"
+      - "**/*.jpeg"
+      - "**/*.gif"
+      - "**/*.webp"
+      - "src/shared/**/*.png"
+      - "src/shared/**/*.jpg"
+      - "src/shared/**/*.jpeg"
+      - "src/shared/**/*.svg"
+      - "docs/assets:media/**/*"
+      - "src/demo/**/*"
+    name: visual
+    ref: |
+      visual
+      media
+      image
+      video
+      graphics
+      art
+      vector
+      svg
+      png
+      jpg
+      jpeg
+      gif
+      animation
+      interface
+      ui
+      design
+      css
+      scss
+      sass
+      less
+      style
+      layout
+      theme
+      colors
+      fonts
+      typography
+      responsive
+      mobile
+      desktop
+      user experience
+      ux
+      accessibility
+      a11y
+      branding
+      appearance
+      dark mode
+      light mode
+      aesthetic
+      icon
+      logo
+      mockup
+      wireframe
+      prototype
+  - color: ffffff
+    description: This will not be worked on
+    name: wontfix
+    ref: |
+      ignore
+      nonissue
+      non-issue
+      wontfix
+      won'tfix
+      won't
+      nofix
+      nope
+      no
+      closed
+      as designed
+      by desiågn
+      intended behavior
+      expected behavior
+      not a bug
+      declined
+      rejected
+      will not implement
+      no plans
+      out of scope
+      too complex
+      not feasible
+      not worth it
+      can't reproduce
+      cannot fix
+      low priority
+      duplicate functionality
+      unnecessary
+  - color: 1d76db
+    description: Related to version ranges and semantic versioning
+    files:
+      - src/utils/semver.util.js
+      - src/**/*version*.js
+      - src/**/*semver*.js
+    name: semver
+    ref: |
+      semver
+      semantic versioning
+      version range
+      version constraint
+      version specification
+      major version
+      minor version
+      patch version
+      version compatibility
+      version requirement
+      versioning
+      version resolution
+      version selection
+      version conflict
+      version parsing
+  - color: 0e8a16
+    description: Related to test coverage and improvements
+    files:
+      - test/**/*
+      - "**/*.test.js"
+      - "**/*.spec.js"
+      - jest.config.js
+      - mocha.opts
+    name: testing
+    ref: |
+      test
+      testing
+      unit test
+      integration test
+      e2e test
+      end-to-end test
+      coverage
+      jest
+      mocha
+      jasmine
+      chai
+      assert
+      expect
+      should
+      spec
+      fixture
+      mock
+      stub
+      spy
+  - color: fbca04
+    description: Performance improvements and optimizations
+    name: performance
+    ref: |
+      performance
+      optimization
+      speed
+      benchmark
+      efficient
+      fast
+      slow
+      bottleneck
+      memory usage
+      cpu usage
+      resource usage
+      latency
+      throughput
+      profiling
+      load test
+      stress test

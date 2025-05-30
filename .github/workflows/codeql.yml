@@ -1,10 +1,12 @@
-name: "CodeQL Security Analysis"
+name: "Security Analysis"
 
 on:
-  pull_request:
-    branches: [ "main" ]
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   schedule:
     - cron: '39 5 * * 1' # Run weekly on Mondays at 5:39 AM
 
@@ -24,6 +26,7 @@ jobs:
         include:
         - language: javascript-typescript
           build-mode: manual
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -1,8 +1,8 @@
-name: Mark stale issues and PRs
+name: State Checks
 
 on:
   schedule:
-  - cron: '28 19 * * *'
+    - cron: '39 5 * * 1' # Run weekly on Mondays at 5:39 AM
 
 jobs:
   stale:
