@@ -1,28 +1,41 @@
 # Node.js Compatibility Range Analyzer
 
-<sup><sub>DESCRIPTION</sub></sup>
-
 A CLI tool to **analyze and aggregate Node.js version requirements** for your project and its direct dependencies. It reads the `engines.node` fields from your project's [`package.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json) and those of its direct dependencies (including devDependencies by default), then computes the intersection—helping you ensure your project runs on a compatible Node.js version.
+
+---
+
+## 🌟 Overview
+
+Node.js Compatibility Range Analyzer helps developers identify compatible Node.js versions across their project and dependencies. Key features include:
+
+- **Version Range Analysis**: Determines compatible Node.js versions by analyzing all dependencies
+- **Conflict Detection**: Identifies and reports version conflicts between dependencies
+- **Flexible Configuration**: Includes/excludes devDependencies based on your needs
+- **Multiple Output Formats**: Human-readable or JSON output for CI/CD integration
+- **Detailed Logging**: Verbose mode for troubleshooting compatibility issues
+- **Security Focused**: Enhanced with CodeQL security scanning
+- **Developer-Friendly**: Clean API and easy-to-understand reports
+
+This tool is essential for projects with multiple dependencies, helping maintain compatibility across your entire dependency tree.
 
 ---
 
 ## 📚 Table of Contents
 
-- [Features](#features)
-- [Installation](#installation)
+- [Overview](#overview)
+- [Project Setup](#project-setup)
+  - [Installation](#installation)
+  - [Development Environment](#development-environment)
 - [Usage](#usage)
   - [Command-Line Options](#command-line-options)
+- [Project Structure](#project-structure)
 - [How It Works](#functionality)
 - [Examples](#demonstrations)
+- [Workflows & Automation](#workflows--automation)
+- [Configuration Files](#configuration-files)
+- [Contributing](#contributing)
+- [Documentation](#documentation)
 - [Troubleshooting](#troubleshooting)
-- [Documentation Index](docs.md)
-  - [Change logs](.github/CHANGELOG.md)
-  - [Contributing Guide](.github/CONTRIBUTING.md)
-  - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
-  - [Security Policy](.github/SECURITY.md)
-  - [Licensing](.github/LICENSE.md)
-  - [Citation Information](.github/CITATION.md)
-  - [Code Owners](.github/CODEOWNERS.md)
 
 ---
 
@@ -57,7 +70,7 @@ A CLI tool to **analyze and aggregate Node.js version requirements** for your pr
     npm link
     ```
 
-  Now you can run `check-node-compat` from anywhere.
+Now you can run `check-node-compat` from anywhere.
 
 > If published, you could install globally with:
 >
@@ -65,9 +78,37 @@ A CLI tool to **analyze and aggregate Node.js version requirements** for your pr
 > npm install -g node-compat-range-analyzer
 > ```
 
+### 🧰 Development Environment
+
+This project includes several configurations to ensure a consistent development experience:
+
+#### Node.js Version Management
+
+- **Node Version**: The project uses an `.nvmrc` file specifying `lts/jod` as the Node.js version
+- **Package Manager**: npm v10.9.2 (specified in package.json)
+- **Engine Requirements**: Node.js >=14.17.0, npm >=6.14.0
+
+#### Editor Configuration
+
+- **EditorConfig**: Consistent formatting via `.editorconfig` (spaces, line endings, etc.)
+- **VS Code Extensions**: Recommended extensions in `.vscode/extensions.json`:
+  - Markdown linting
+  - YAML formatting and sorting
+  - CSS tools
+  - JSON sorting
+- **VS Code Settings**: Optimized settings for formatting, linting, and AI-powered assistance
+
+#### Code Quality Tools
+
+- **ESLint**: JavaScript linting with recommended rules
+- **Prettier**: Code formatting with consistent style
+- **MarkdownLint**: Markdown document quality enforcement
+- **HTMLHint**: HTML validation
+- **Stylelint**: CSS linting and validation
+
 ---
 
-## 🛠️ Usage
+## 🚀 Usage
 
 Analyze a project in the current directory:
 
@@ -106,23 +147,61 @@ node ./src/index.js
 
 ---
 
+## 📂 Project Structure
+
+The repository is organized to maximize developer productivity:
+
+```plaintext
+/
+├─ .github/                    # GitHub configurations
+│  ├─ ISSUE_TEMPLATE/          # Issue templates (bug, feature, docs, question)
+│  ├─ workflows/               # GitHub Actions workflow definitions
+│  ├─ CODE_OF_CONDUCT.md       # Community guidelines
+│  ├─ SECURITY.md              # Security policies
+│  └─ ...                      # Other community documents
+├─ .vscode/                    # Visual Studio Code configurations
+│  ├─ extensions.json          # Recommended extensions
+│  └─ settings.json            # Editor settings
+├─ docs/                       # Documentation files
+├─ src/                        # Source code
+│  ├─ index.js                 # Main entry point
+│  ├─ data/                    # Data files (messages, etc.)
+│  ├─ utils/                   # Utility functions
+│  │  ├─ logger.service.js     # Logging utilities
+│  │  ├─ package.util.js       # Package.json parsing utilities
+│  │  └─ semver.util.js        # Semantic versioning utilities
+│  └─ views/                   # UI templates/views
+├─ test/                       # Test files
+├─ .editorconfig               # Editor formatting configurations
+├─ .gitignore                  # Git ignore rules
+├─ .nvmrc                      # Node Version Manager configuration
+├─ package.json                # Project metadata and dependencies
+└─ README.md                   # Project documentation
+```
+
+---
+
 ## ⚙️ Functionality
 
-1. **Locate Project [`package.json`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json):**
-   - By default, uses the current directory or the path specified by `--project-path`.
-2. **Extract `engines.node`:**
-   - Reads the [`engines.node`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#engines) field. If missing, treats as `*` (any version).
-3. **Identify Direct Dependencies:**
-   - Reads both `dependencies` and (by default) `devDependencies`. Use `--no-dev` to exclude devDependencies.
-4. **Analyze Dependency `engines.node`:**
-   - For each direct dependency, reads its `package.json` from `node_modules` and extracts `engines.node`. Missing fields are treated as `*`.
-5. **Aggregate and Intersect Ranges:**
-   - Uses [semver](https://github.com/npm/node-semver) logic to compute the intersection of all version ranges.
-6. **Output Results:**
-   - Prints the compatible Node.js version range, or reports a conflict if no intersection exists.
-7. **Error Handling:**
-   - Reports errors for missing/unparseable `package.json` files.
-   - Logs warnings for dependencies that can't be analyzed.
+The Node.js Compatibility Range Analyzer works through these steps:
+
+1. **Locate Project Package**: Finds the project's `package.json` using the provided path or current directory
+2. **Extract Node.js Requirements**:
+   - Reads the `engines.node` field from the project's package.json
+   - Treats missing fields as `*` (any version)
+3. **Analyze Dependencies**:
+   - Scans both `dependencies` and `devDependencies` (unless `--no-dev` is specified)
+   - Reads each dependency's `package.json` from the `node_modules` directory
+   - Extracts their `engines.node` fields
+4. **Calculate Compatible Range**:
+   - Uses semantic versioning logic to find the intersection of all version ranges
+   - Determines the highest minimum version and lowest maximum version
+5. **Generate Report**:
+   - Outputs a human-readable report or JSON data
+   - Clearly shows compatible Node.js version range or conflicts
+   - Provides detailed logs in verbose mode
+
+The tool handles errors gracefully, reporting missing files, unparseable JSON, and version conflicts with clear messages.
 
 ---
 
@@ -140,13 +219,13 @@ Suppose you have a project `my-app`:
   "name": "my-app",
   "version": "1.0.0",
   "engines": {
-  "node": ">=14.0.0 <19.0.0"
+    "node": ">=14.0.0 <19.0.0"
   },
   "dependencies": {
-  "lib-a": "1.0.0"
+    "lib-a": "1.0.0"
   },
   "devDependencies": {
-  "lib-b": "1.0.0"
+    "lib-b": "1.0.0"
   }
 }
 ```
@@ -161,7 +240,7 @@ Suppose you have a project `my-app`:
   "name": "lib-a",
   "version": "1.0.0",
   "engines": {
-  "node": ">=12.0.0"
+    "node": ">=12.0.0"
   }
 }
 ```
@@ -176,14 +255,12 @@ Suppose you have a project `my-app`:
   "name": "lib-b",
   "version": "1.0.0",
   "engines": {
-  "node": "<17.0.0"
+    "node": "<17.0.0"
   }
 }
 ```
 
 </details>
-
----
 
 ### Scenario 1: Default Analysis (includes devDependencies)
 
@@ -202,8 +279,6 @@ Aggregated range: `>=14.0.0 <17.0.0`
 INFO: Determined Node.js version range: 14.0.0 - 17.0.0
 ```
 
----
-
 ### Scenario 2: Excluding devDependencies
 
 ```bash
@@ -219,8 +294,6 @@ Aggregated range: `>=14.0.0 <19.0.0`
 ```bash
 INFO: Determined Node.js version range: 14.0.0 - 19.0.0
 ```
-
----
 
 ### Scenario 3: Version Conflict
 
@@ -248,29 +321,9 @@ With `--json`:
 }
 ```
 
-Tool exits with code 1.
-
 ---
 
-## 🧩 Troubleshooting
-
-- **Missing `package.json`:** Ensure the specified project path is correct.
-- **Dependency not found:** Make sure dependencies are installed (`npm install`).
-- **Unparseable `package.json`:** Check for syntax errors in your `package.json` files.
-- **No output:** Try running with `--verbose` for more details.
-
----
-
-## 📝 References
-
-- [Node.js](https://nodejs.org/)
-- [npm package.json documentation](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
-- [semver](https://github.com/npm/node-semver)
-- [yargs (CLI argument parser)](https://github.com/yargs/yargs)
-
----
-
-## 🤖 CI/CD Automation
+## 🔄 Workflows & Automation
 
 This project features a streamlined CI/CD setup with optimized GitHub Actions workflows for development efficiency and security.
 
@@ -288,50 +341,192 @@ The following workflows have been optimized for clarity and performance:
 | **Pull Request Labeler** | Automated categorization of PRs based on content |
 | **Stale Issue Management** | Handles inactive issues and PRs after 60 days |
 
-### Enhanced Dependabot Configuration
+### GitHub Actions Workflows
 
-The project uses an enhanced Dependabot configuration with:
-
-- Weekly npm dependency scanning
-- Monthly GitHub Actions workflow updates
-- Intelligent versioning strategy
-- Customized PR limits and labels
-- Scoped commit messages with prefixes
-
-### GitHub Actions Token Usage
-
-This project uses GitHub's built-in token system for authentication:
-
-```yaml
-- name: Perform GitHub API operations
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run: |
-    gh api repos/{owner}/{repo}/issues
-```
-
-> **Note:** The default `GITHUB_TOKEN` has carefully configured permissions in each workflow to follow the principle of least privilege.
-
-## 🔄 Streamlined Workflows
-
-The project maintains the following optimized workflows:
-
-### Core Development Workflows
+This project uses GitHub Actions for automation, testing, and quality control:
 
 | Workflow | Description |
-| -------- | ----------- |
-| **Node.js CI** | Runs tests across Node.js 18.x, 20.x, and 22.x versions |
-| **CodeQL Security Analysis** | Performs advanced security scanning with extended queries |
-| **Demo Page Deployment** | Automatically publishes demo content to GitHub Pages |
+|----------|-------------|
+| **nodejs.yml** | Tests the project on multiple Node.js versions (18.x, 20.x, 22.x) |
+| **documentation-check.yml** | Validates documentation files for consistency and standards |
+| **static-page.yml** | Deploys demo content to GitHub Pages |
+| **update-changelog.yml** | Automatically updates the changelog with new releases |
+| **summary.yml** | Generates summaries for issues and pull requests |
 
-### Maintenance Workflows
+### Issue Management
 
-| Workflow | Description |
-| -------- | ----------- |
-| **Dependabot** | Manages npm and GitHub Actions dependencies |
-| **Labeler** | Automatically categorizes PRs based on file changes |
-| **Stale Issue Management** | Maintains repository cleanliness |
-| **Issue Summarizer** | Provides AI-generated summaries of new issues |
+- **Customized issue templates** for:
+  - Bug reports
+  - Feature requests
+  - Documentation improvements
+  - Performance issues
+  - General questions
+- **Issue labeling automation** based on content
+- **Stale issue handling** to maintain repository cleanliness
+
+### Dependency Management
+
+- **Dependabot configuration** for automatic updates:
+  - npm dependencies
+  - GitHub Actions
+  - Security patches
+- **Version strategy** with intelligent versioning rules
+
+### Release Process
+
+- **Automated versioning** with `standard-version`
+- **Release notes generation** from commit messages
+- **Changelog updates** with each release
+
+---
+
+## ⚙️ Configuration Files
+
+The project includes various configuration files for development tools and environments:
+
+### Development Environment
+
+| File | Purpose |
+|------|---------|
+| `.editorconfig` | Ensures consistent formatting across editors (spacing, line endings) |
+| `.nvmrc` | Specifies the Node.js version (`lts/jod`) for development |
+| `.vscode/extensions.json` | Recommends helpful VS Code extensions for this project |
+| `.vscode/settings.json` | Configures VS Code for optimal development experience |
+| `.gitignore` | Specifies files to exclude from version control |
+
+### Code Quality
+
+| File | Purpose |
+|------|---------|
+| `package.json > eslintConfig` | JavaScript linting rules |
+| `package.json > prettier` | Code formatting standards |
+| `.github/workflows/*.yml` | CI/CD testing and quality checks |
+
+### Documentation
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Project overview and usage instructions |
+| `docs.md` | Documentation index |
+| `.github/*.md` | Community guidelines and project information |
+| `.github/ISSUE_TEMPLATE/*.yml` | Issue templates for consistent reporting |
+
+### Git Templates
+
+| File | Purpose |
+|------|---------|
+| `.github/PULL_REQUEST_TEMPLATE.md` | Template for pull request submissions |
+| `.github/ISSUE_TEMPLATE/*.yml` | Templates for different issue types |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! The project includes several files to help guide contributors:
+
+- **[Code of Conduct](.github/CODE_OF_CONDUCT.md)**: Community guidelines for respectful collaboration
+- **[Contributing Guide](.github/CONTRIBUTING.md)**: How to contribute to this project
+- **[Security Policy](.github/SECURITY.md)**: Guidelines for reporting security vulnerabilities
+- **[License](.github/LICENSE.md)**: Project license information
+- **[Code Owners](.github/CODEOWNERS.md)**: Maintainers and reviewers
+
+When contributing, please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request using the provided template
+
+The project uses GitHub's pull request workflow with automated checks to maintain quality.
+
+---
+
+## 📚 Documentation
+
+Documentation for the Node.js Compatibility Range Analyzer is available in the `docs/` directory and as inline comments in the source code. Key documents include:
+
+- **User Guide**: `docs/user-guide.md`
+- **API Documentation**: `docs/api.md`
+- **Configuration Reference**: `docs/configuration.md`
+- **Contribution Guidelines**: `docs/contributing.md`
+
+All project documentation is organized in a central location for easy reference:
+
+### Documentation Files
+
+- **[Documentation Index](docs.md)**: Overview of all documentation files
+- **[Changelog](.github/CHANGELOG.md)**: History of changes in each version
+- **[Contributing Guide](.github/CONTRIBUTING.md)**: How to contribute to this project
+- **[Code of Conduct](.github/CODE_OF_CONDUCT.md)**: Community guidelines
+- **[Security Policy](.github/SECURITY.md)**: How to report security vulnerabilities
+- **[License](.github/LICENSE.md)**: Project license information
+- **[Citation Information](.github/CITATION.md)**: How to cite this project
+- **[Code Owners](.github/CODEOWNERS.md)**: Maintainers and reviewers
+
+### API Documentation
+
+The source code is documented with JSDoc comments that explain:
+
+- Function parameters and return values
+- Type definitions
+- Usage examples
+- Implementation details
+
+### Command-Line Help
+
+Run `check-node-compat --help` for built-in help documentation.
+
+---
+
+## 🧩 Troubleshooting
+
+If you encounter issues, here are some troubleshooting tips:
+
+- **Invalid Node.js version range**: Ensure your `package.json` has a valid `engines.node` field.
+- **Dependency not found**: Make sure all dependencies are installed. Run `npm install` to install missing dependencies.
+- **Permission denied**: If you get a permission error, try running the command with `sudo` (Linux/macOS) or as an administrator (Windows).
+- **Command not found**: Ensure that the CLI is installed globally and the installation path is in your system's `PATH` environment variable.
+
+Common issues and their solutions:
+
+### Package.json Issues
+
+- **Missing `package.json`**: Ensure the specified project path is correct
+- **Invalid JSON**: Check for syntax errors in your `package.json` files
+- **Missing dependencies**: Run `npm install` to ensure all dependencies are available
+
+### Node.js Version Issues
+
+- **Incompatible version**: Use the recommended Node.js version in `.nvmrc`
+- **Version conflict**: Check if any dependencies have conflicting Node.js requirements
+- **Missing `engines` field**: Add appropriate Node.js version requirements to your `package.json`
+
+### CLI Usage Issues
+
+- **Permission denied**: Ensure the tool is properly installed with `npm link`
+- **Command not found**: Make sure the tool is in your PATH
+- **No output**: Try running with `--verbose` for more details
+
+### Common Errors
+
+| Error | Solution |
+|-------|----------|
+| "Cannot find module" | Run `npm install` to install dependencies |
+| "Version conflict" | Update dependencies or adjust your Node.js version range |
+| "Failed to parse package.json" | Fix JSON syntax errors in the file |
+| "EACCES permission denied" | Use proper permissions or run with sudo if necessary |
+
+For more help, check the [issues page](https://github.com/darcher-/nodeVersionRange/issues) or start a [discussion](https://github.com/darcher-/nodeVersionRange/discussions).
+
+---
+
+## 📚 References
+
+- [Node.js Documentation](https://nodejs.org/docs)
+- [npm package.json](https://docs.npmjs.com/cli/v10/configuring-npm/package-json)
+- [Semantic Versioning](https://semver.org/)
+- [GitHub Actions](https://docs.github.com/en/actions)
 
 ---
 

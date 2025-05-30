@@ -144,5 +144,12 @@
   ],
   "yaml.schemas": {
     "https://raw.githubusercontent.com/helm/charts/master/stable/values.schema.json": "/*.yaml"
+  },
+  "yaml.sort": {
+    "enabled": true,
+    "sortOrder": "asc",
+    "sortByKey": false,
+    "sortByValue": false,
+    "sortByLength": false
   }
 }
