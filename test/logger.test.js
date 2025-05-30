@@ -72,7 +72,7 @@ process.exit = (code) => { exitCode = code; throw new Error('process.exit called
 try {
   logger.error('errors.readParseRootPackageJson', {
     projectPkgPath: '/path/to/package.json',
-    erroåårMessage: 'File not found'
+    errorMessage: 'File not found'
   }, true)
 } catch (e) {
   // Expected error due to mocked process.exit
