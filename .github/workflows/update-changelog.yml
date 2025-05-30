@@ -44,15 +44,15 @@ jobs:
       - name: Generate commit history since base branch
         id: generate-commits
         run: |
-          # Ensure both base and PR branches are fetched
-          git fetch origin ${{ steps.branch-info.outputs.base_branch }} ${{ steps.branch-info.outputs.pr_branch }}
+          # Ensure both base and PR branches are fetched with complete history
+          git fetch --depth=0 origin ${{ steps.branch-info.outputs.base_branch }} ${{ steps.branch-info.outputs.pr_branch }}
 
           # Create a temporary file for the commit history
           TEMP_FILE=$(mktemp)
 
           # Get the commits that are in the PR branch but not in the base branch
-          # Using -- separator to properly differentiate between revisions and paths
-          git log --pretty=format:"- %s (%h) by %an" origin/${{ steps.branch-info.outputs.base_branch }}..origin/${{ steps.branch-info.outputs.pr_branch }} -- > "$TEMP_FILE"
+          # Using separator to properly differentiate between revisions and paths
+          git log --pretty=format:"- %s (%h) by %an" origin/${{ steps.branch-info.outputs.base_branch }}..origin/${{ steps.branch-info.outputs.pr_branch }} > $TEMP_FILE
 
           # Count the commits
           COMMIT_COUNT=$(wc -l < $TEMP_FILE | tr -d ' ')
