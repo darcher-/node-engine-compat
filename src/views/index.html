@@ -1262,7 +1262,10 @@
         {
           resultText = result;
         }
-        document.getElementById('compareVersionsResult').innerHTML = `Input A: <code class="mono">${versionA}</code>, Input B: <code class="mono">${versionB}</code><br>Output: <code class="mono">${resultText}</code>`;
+        const escapedVersionA = escapeHTML(versionA);
+        const escapedVersionB = escapeHTML(versionB);
+        const escapedResultText = escapeHTML(resultText);
+        document.getElementById('compareVersionsResult').textContent = `Input A: ${escapedVersionA}, Input B: ${escapedVersionB}, Output: ${escapedResultText}`;
       });
 
       function simGetImpliedBoundsFromOperator(operator, versionString) {
@@ -1520,4 +1523,11 @@
     </script>
   </body>
 
+      <script>
+        function escapeHTML(str) {
+          const div = document.createElement('div');
+          div.textContent = str;
+          return div.innerHTML;
+        }
+      </script>
 </html>
