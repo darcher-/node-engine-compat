@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import logger from '../services/logger.js'
+import logger from '../utils/logger.service.js'
 
 /**
  * Creates a unified list of all dependencies (dependencies and optionally devDependencies).

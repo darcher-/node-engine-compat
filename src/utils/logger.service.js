@@ -13,10 +13,13 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const messages = JSON.parse(readFileSync(join(__dirname, '../shared/messages.json'), 'utf8'))
 
+const HIGHLIGHT_KEYS = ['depName', 'projectPkgPath', 'depPath', 'globalMin', 'globalMax'];
+
 /**
  * @param {string} templateString
  * @param {{ [x: string]: any; }} data
  * @param {string} baseColor
+ * @returns {string}
  */
 function interpolate(templateString, data, baseColor)
 {
@@ -24,11 +27,10 @@ function interpolate(templateString, data, baseColor)
   return templateString.replace(/\{(\w+)\}/g, (match, key) =>
   {
     const value = data[key]
-    if (value !== undefined) {
+    if (value !== undefined && HIGHLIGHT_KEYS.includes(key)) {
       // Apply specific color to placeholders, then reset to baseColor for subsequent text in the same line
-      if (key === 'depName' || key === 'projectPkgPath' || key === 'depPath' || key === 'globalMin' || key === 'globalMax') {
-        return `${FG_CYAN}${value}${baseColor}`
-      }
+      return `${FG_CYAN}${String(value)}${baseColor}`
+    } else if (value !== undefined) {
       return String(value) // Ensure value is a string
     }
     return match // Placeholder not found
@@ -38,18 +40,19 @@ function interpolate(templateString, data, baseColor)
 /**
  * @param {string} level
  * @param {string} messageKey
+ * @param {Record<string, any>} [data={}]
  */
 function logMessage(level, messageKey, data = {})
 {
   const messageParts = messageKey.split('.')
   let messageObj = messages
-  try {
-    messageParts.forEach((/** @type {string | number} */ part) =>
-    {
+  for (const part of messageParts) {
+    if (messageObj && typeof messageObj === 'object' && part in messageObj) {
       messageObj = messageObj[part]
-    })
-  } catch (e) {
-    messageObj = undefined
+    } else {
+      messageObj = undefined // Key path not fully resolved
+      break
+    }
   }
 
   if (!messageObj) {
@@ -84,9 +87,9 @@ function logMessage(level, messageKey, data = {})
 }
 
 const logger = {
-  info: (/** @type {any} */ messageKey, /** @type {{} | undefined} */ data) => logMessage('info', messageKey, data),
-  warn: (/** @type {any} */ messageKey, /** @type {{} | undefined} */ data) => logMessage('warn', messageKey, data),
-  error: (/** @type {any} */ messageKey, /** @type {{} | undefined} */ data, exit = false) =>
+  info: (/** @type {string} */ messageKey, /** @type {Record<string, any> | undefined} */ data) => logMessage('info', messageKey, data),
+  warn: (/** @type {string} */ messageKey, /** @type {Record<string, any> | undefined} */ data) => logMessage('warn', messageKey, data),
+  error: (/** @type {string} */ messageKey, /** @type {Record<string, any> | undefined} */ data, exit = false) =>
   {
     logMessage('error', messageKey, data)
     if (exit) {

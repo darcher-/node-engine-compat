@@ -21,7 +21,6 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-    versioning-strategy: auto
     commit-message:
       prefix: "deps"
       include: "scope"
