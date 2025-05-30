@@ -116,7 +116,7 @@ let jsonOutput
 for (let i = capturedOutput.length - 1; i >= 0; i--) {
   try {
     jsonOutput = JSON.parse(capturedOutput[i])
-    break
+    break;
   } catch (e) { /* Not JSON, try previous */ }
 }
 assert(jsonOutput, 'Should have parsed valid JSON output from console')

@@ -89,7 +89,7 @@ let result1Json
 for (let i = capturedOutput.length - 1; i >= 0; i--) {
   try {
     result1Json = JSON.parse(capturedOutput[i])
-    break
+    break;
   } catch (e) { /* Not JSON, try previous */ }
 }
 assert(result1Json, 'Should output result in JSON format')
@@ -111,7 +111,7 @@ let result2Json
 for (let i = capturedOutput.length - 1; i >= 0; i--) {
   try {
     result2Json = JSON.parse(capturedOutput[i])
-    break
+    break;
   } catch (e) { /* Not JSON, try previous */ }
 }
 assert(result2Json, 'Should output result in JSON format for noDev=true')
@@ -131,7 +131,7 @@ let result3Json
 for (let i = capturedOutput.length - 1; i >= 0; i--) {
   try {
     result3Json = JSON.parse(capturedOutput[i])
-    break
+    break;
   } catch (e) { /* Not JSON, try previous */ }
 }
 assert(result3Json, 'Should output result in JSON format for no-dev alias')
@@ -260,7 +260,7 @@ let noEnginesResultJson
 for (let i = capturedOutput.length - 1; i >= 0; i--) {
   try {
     noEnginesResultJson = JSON.parse(capturedOutput[i])
-    break
+    break;
   } catch (e) { /* Not JSON, try previous */ }
 }
 assert(noEnginesResultJson, 'Should output result in JSON format for noEngines project')
