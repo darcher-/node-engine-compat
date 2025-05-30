@@ -7,17 +7,25 @@ import loggerService from './utils/logger.service.js'
 import packageUtils from './utils/package.util.js'
 import semverUtils from './utils/semver.util.js'
 
+// Define a type for the parsed command line arguments.
 /**
  * @typedef {object} Param
- * @property {string} [projectPath] - Path to the project directory.
- * @property {string} [project-path] - Alias for projectPath.
- * @property {boolean} [json] - Output results in JSON format.
- * @property {boolean} [noDev] - Exclude devDependencies from analysis.
- * @property {boolean} [no-dev] - Alias for noDev.
- * @property {boolean} [verbose] - Run with verbose logging.
- * @property {boolean} [noExit] - Don't call process.exit() on conflict, just return the result.
+ * @property {string} [projectPath] - The path to the project directory to analyze. Defaults to the current working directory.
+ * @property {string} [project-path] - Alias for `projectPath`.
+ * @property {boolean} [json] - Flag to output the results in JSON format.
+ * @property {boolean} [noDev] - Flag to exclude `devDependencies` from the analysis.
+ * @property {boolean} [no-dev] - Alias for `noDev`.
+ * @property {boolean} [verbose] - Flag to enable verbose logging for debugging purposes.
+ * @property {boolean} [noExit] - Flag to prevent the script from calling `process.exit()` on conflict.
+ * // Properties added by yargs
  * @property {(string|number)[]} [_] - Positional arguments.
  * @property {string} [$0] - The original command that was run.
+ * @property {string} [v] - Alias for `verbose`.
+ * @property {string} [p] - Alias for `project-path`.
+ * @property {boolean} [help] - Flag to display help message.
+ * @property {boolean} [h] - Alias for `help`.
+ * @property {boolean} [version] - Flag to display version number.
+ * @property {boolean} [V] - Alias for `version`.
  */
 
 /**
@@ -27,6 +35,11 @@ import semverUtils from './utils/semver.util.js'
  * It outputs the results in a human-readable format or as JSON based on command line arguments.
  * @param {Param} argv
  * @returns {{ globalMin: string|null, globalMax: string|null, conflict: boolean }}
+ *   An object containing:
+ *   - `globalMin`: The highest minimum Node.js version required across all analyzed packages, or null if no lower bound is specified.
+ *   - `globalMax`: The lowest maximum Node.js version allowed across all analyzed packages, or null if no upper bound is specified. Note: this is potentially exclusive depending on the source constraint but represented inclusively in the return value for simplicity, consistent with the script's output format.
+ *   - `conflict`: A boolean indicating whether a version conflict was detected (`globalMin` is greater than `globalMax`).
+ * @throws {Error} If the root package.json cannot be read or parsed and `noExit` is false.
  */
 function main(argv)
 {
@@ -105,26 +118,37 @@ function main(argv)
 
   if (argv.json) {
     const result = {
+      // Ensure null is explicitly returned for min/max if they are not strings
       globalMin: typeof globalMin === 'string' ? globalMin : null,
       globalMax: typeof globalMax === 'string' ? globalMax : null,
       conflict,
       message: 'no message'
     }
+
     if (conflict) {
       result.message = `Version conflict: calculated min (${globalMin}) is greater than max (${globalMax}).`
     } else if (globalMin && globalMax) {
+      // Note: The output format "<=globalMax" might be misleading if globalMax originated from an exclusive constraint.
+      // This matches the script's original human-readable output style.
       result.message = `Determined Node.js version range: ${globalMin} - ${globalMax}`
     } else if (globalMin) {
       result.message = `Determined minimum Node.js version: ${globalMin}`
     } else if (globalMax) {
+      // Note: The output format "<=globalMax" might be misleading if globalMax originated from an exclusive constraint.
       result.message = `Determined maximum Node.js version (exclusive): ${globalMax}`
     } else {
       result.message = "No specific Node.js engine constraints found."
     }
+
+    // Output the JSON result to stdout
     console.log(JSON.stringify(result, null, 2))
-    // Make sure to exit with code 1 if there's a conflict
+
+    // If a conflict is detected and process.exit is not disabled, exit with a non-zero code
     if (conflict && !argv.noExit) {
+      // Log debug message before exiting
       console.log('DEBUG: Found conflict, about to call process.exit(1)')
+      // Exit with code 1 to indicate an error/conflict
+      // This line will only be reached if !argv.noExit
       process.exit(1)
     }
   } else {
@@ -141,6 +165,7 @@ function main(argv)
     }
   }
 
+  // Return the calculated range and conflict status. This is primarily for testing or external use when noExit is true.
   return {
     globalMin: globalMin || null,
     globalMax: globalMax || null,
@@ -149,30 +174,42 @@ function main(argv)
 }
 
   const argv = yargs(hideBin(process.argv))
+    // Option to specify the project path
     .option('project-path', {
       alias: 'p',
       type: 'string',
       description: 'Path to the project directory'
     })
+    // Option to output results in JSON format
     .option('json', {
       type: 'boolean',
       description: 'Output results in JSON format'
     })
+    // Option to exclude devDependencies from analysis
     .option('no-dev', {
       type: 'boolean',
       description: 'Exclude devDependencies from analysis'
     })
+    // Option for verbose logging
     .option('verbose', {
       alias: 'v',
       type: 'boolean',
       description: 'Run with verbose logging'
     })
+    // Option to display the version number
     .version()
+    // Option to display help message
     .help()
+    // Alias for help option
     .alias('help', 'h')
+    // Alias for version option
     .alias('version', 'V')
     .argv
 
+  // Run the main function with the parsed arguments.
+  // Using Promise.resolve().then() allows for easier testing and potential
+  // future async operations within argument parsing if needed, although not strictly
+  // necessary for the current synchronous yargs.
   Promise.resolve(argv).then(
     (resolvedArgv) => main(resolvedArgv)
   )

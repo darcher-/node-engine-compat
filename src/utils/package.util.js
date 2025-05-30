@@ -3,10 +3,11 @@ import { join } from 'path'
 import logger from '../utils/logger.service.js'
 
 /**
- * Creates a unified list of all dependencies (dependencies and optionally devDependencies).
+ * Extracts and combines the `dependencies` and optionally `devDependencies` from a parsed package.json object.
+ * Handles cases where `dependencies` or `devDependencies` fields are missing or not objects.
  * @param {{ dependencies?: Object, devDependencies?: Object }} pkg - Parsed package.json object.
  * @param {boolean} [excludeDevDeps=false] - Whether to exclude devDependencies.
- * @returns {object} A map of dependency names to their versions.
+ * @returns {object} An object containing dependency names as keys and their versions as values.
  */
 function getDeps(pkg, excludeDevDeps = false)
 {
@@ -24,8 +25,10 @@ function getDeps(pkg, excludeDevDeps = false)
 }
 
 /**
- * Reads and parses the package.json file for a named dependency.
+ * Reads and parses the package.json file for a specific dependency located within the project's node_modules directory.
+ * Includes error handling for file system issues or invalid JSON.
  * @param {string} depName - Name of the dependency.
+ * @throws {TypeError} If `depName` or `projectPath` are not strings.
  * @param {string} projectPath - The root path of the project being analyzed.
  * @returns {object|null} Parsed package.json object or null on error.
  */
@@ -49,8 +52,10 @@ function getDepPkgJson(depName, projectPath)
 }
 
 /**
- * Reads and parses the root package.json file.
+ * Reads and parses the package.json file at the specified project root path.
+ * This function is critical and designed to exit the process upon failure.
  * @param {string} projectPkgPath - Path to the root package.json file.
+ * @throws {TypeError} If `projectPkgPath` is not a string.
  * @returns {object|null} Parsed package.json object or null on error.
  */
 function getRootPkgJson(projectPkgPath)
