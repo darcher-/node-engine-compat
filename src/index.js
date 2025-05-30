@@ -120,8 +120,8 @@ function main(argv)
       result.message = `Determined maximum Node.js version (exclusive): ${globalMax}`
     } else {
       result.message = "No specific Node.js engine constraints found."
-    } console.log(JSON.stringify(result, null, 2))
-
+    }
+    console.log(JSON.stringify(result, null, 2))
     // Make sure to exit with code 1 if there's a conflict
     if (conflict && !argv.noExit) {
       console.log('DEBUG: Found conflict, about to call process.exit(1)')
