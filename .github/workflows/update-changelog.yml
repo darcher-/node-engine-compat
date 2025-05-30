@@ -47,7 +47,8 @@ jobs:
           TEMP_FILE=$(mktemp)
 
           # Get the commits that are in the PR branch but not in the base branch
-          git log --pretty=format:"- %s (%h) by %an" ${{ steps.branch-info.outputs.base_branch }}..${{ steps.branch-info.outputs.pr_branch }} > $TEMP_FILE
+          # Using -- separator to properly differentiate between revisions and paths
+          git log --pretty=format:"- %s (%h) by %an" ${{ steps.branch-info.outputs.base_branch }}..${{ steps.branch-info.outputs.pr_branch }} -- > $TEMP_FILE
 
           # Count the commits
           COMMIT_COUNT=$(wc -l < $TEMP_FILE | tr -d ' ')
