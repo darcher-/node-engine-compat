@@ -4,47 +4,48 @@ import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import indexModule from '../src/index.js'
+import test from 'node:test'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-console.log('Testing conflict detection functionality...')
+test('Testing conflict detection functionality', (t) => {
+  // Create a temp directory for testing
+  const tempDir = join(tmpdir(), `conflict-test-${Date.now()}`)
+  mkdirSync(tempDir, { recursive: true })
+  mkdirSync(join(tempDir, 'node_modules', 'conflict-dep'), { recursive: true })
 
-// Create a temp directory for testing
-const tempDir = join(tmpdir(), `conflict-test-${Date.now()}`)
-mkdirSync(tempDir, { recursive: true })
-mkdirSync(join(tempDir, 'node_modules', 'conflict-dep'), { recursive: true })
-
-// Create test package.json files with a conflict
-const rootPkg = {
-  name: 'conflict-project',
-  dependencies: {
-    'conflict-dep': '1.0.0'
-  },
-  engines: {
-    node: '<14.0.0' // Requires Node.js less than 14.0.0
+  // Create test package.json files with a conflict
+  const rootPkg = {
+    name: 'conflict-project',
+    dependencies: {
+      'conflict-dep': '1.0.0'
+    },
+    engines: {
+      node: '<14.0.0' // Requires Node.js less than 14.0.0
+    }
   }
-}
 
-const depPkg = {
-  name: 'conflict-dep',
-  version: '1.0.0',
-  engines: {
-    node: '>=14.0.0' // Requires Node.js 14.0.0 or greater
+  const depPkg = {
+    name: 'conflict-dep',
+    version: '1.0.0',
+    engines: {
+      node: '>=14.0.0' // Requires Node.js 14.0.0 or greater
+    }
   }
-}
 
-writeFileSync(join(tempDir, 'package.json'), JSON.stringify(rootPkg, null, 2))
-writeFileSync(join(tempDir, 'node_modules', 'conflict-dep', 'package.json'), JSON.stringify(depPkg, null, 2))
+  writeFileSync(join(tempDir, 'package.json'), JSON.stringify(rootPkg, null, 2))
+  writeFileSync(join(tempDir, 'node_modules', 'conflict-dep', 'package.json'), JSON.stringify(depPkg, null, 2))
 
-// Mock console.log for capturing JSON output
-const originalConsoleLog = console.log
-let capturedOutput = []
+  // Mock console.log for capturing JSON output
+  const originalConsoleLog = console.log
+  let capturedOutput = []
 
-function setupMocks() {
-  capturedOutput = []
-  console.log = (message) => { capturedOutput.push(message) }
-}
+  function setupMocks() {
+    capturedOutput = []
+    console.log = (message) => { capturedOutput.push(message) }
+  }
+})
 
 function restoreMocks() {
   console.log = originalConsoleLog
