@@ -1,4 +1,4 @@
-name: NodeJS CI
+name: Node.js Build & Test
 
 concurrency:
   group: ${{ github.ref }}
@@ -28,9 +28,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - name: Install dependencies
+      - name: Install project dependencies
         run: npm install
-      - name: Build
+      - name: Build project
         run: npm run build --if-present
-      - name: Test
+      - name: Run test suite
         run: npm test

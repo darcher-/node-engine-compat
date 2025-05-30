@@ -1,7 +1,7 @@
 {
   "errors": {
     "readParseDependencyPackageJson": {
-      "title": "Warning: Could not read or parse package.json for dependency \"{depName}\".",
+      "title": "⚠️ Warning: Could not read or parse package.json for dependency \"{depName}\".",
       "details": "  Error details: {errorMessage}",
       "causes": [
         "  Possible causes:",
@@ -10,7 +10,7 @@
       ]
     },
     "readParseRootPackageJson": {
-      "title": "Error: Could not read or parse the root package.json for your project.",
+      "title": "❌ Error: Could not read or parse the root package.json for your project.",
       "path": "  Path checked: {projectPkgPath}",
       "details": "  Error details: {errorMessage}",
       "solutions": [
@@ -21,7 +21,7 @@
       ]
     },
     "versionConflict": {
-      "title": "Error: Incompatible Node.js version requirements found across your project and its dependencies.",
+      "title": "❌ Error: Incompatible Node.js version requirements found across your project and its dependencies.",
       "minRequired": "  Combined minimum Node.js version required: {globalMin}",
       "maxAllowed": "  Combined maximum Node.js version allowed: {globalMax}",
       "conflictExplanation": "  This conflict (min {globalMin} > max {globalMax}) means no single Node.js version can satisfy all declared 'engines.node' constraints.",
@@ -36,10 +36,10 @@
     }
   },
   "info": {
-    "determinedRangeMinMax": "Determined compatible Node.js range: >={globalMin} <={globalMax}",
-    "determinedRangeMinOnly": "Determined compatible Node.js range: >={globalMin}",
-    "determinedRangeMaxOnly": "Determined compatible Node.js range: <={globalMax}",
-    "noConstraintsFound": "No specific Node.js version constraints found in project or its direct dependencies.",
-    "dependencyProcessed": "Processed dependency: {depName} (node engine: {nodeEngine}, min: {min}, max: {max})"
+    "determinedRangeMinMax": "✅ Determined compatible Node.js range: >={globalMin} <={globalMax}",
+    "determinedRangeMinOnly": "✅ Determined compatible Node.js range: >={globalMin}",
+    "determinedRangeMaxOnly": "✅ Determined compatible Node.js range: <={globalMax}",
+    "noConstraintsFound": "ℹ️ No specific Node.js version constraints found in project or its direct dependencies.",
+    "dependencyProcessed": "🔍 Processed dependency: {depName} (node engine: {nodeEngine}, min: {min}, max: {max})"
   }
 }

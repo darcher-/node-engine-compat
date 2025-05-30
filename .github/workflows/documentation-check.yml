@@ -1,4 +1,4 @@
-name: Update Documentation Links
+name: Documentation Link Validator
 
 on:
   push:

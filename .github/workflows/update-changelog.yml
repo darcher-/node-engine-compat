@@ -1,4 +1,4 @@
-name: Update Changelog
+name: Automated Changelog Update
 
 on:
   pull_request:
@@ -28,6 +28,7 @@ jobs:
       - name: Get PR branch and base branch
         id: branch-info
         run: |
+          # Extract branch names for easier reference
           echo "pr_branch=${{ github.head_ref }}" >> $GITHUB_OUTPUT
           echo "base_branch=${{ github.base_ref }}" >> $GITHUB_OUTPUT
 
@@ -64,8 +65,8 @@ jobs:
           # Add PR information to changelog
           PR_TITLE=$(gh pr view ${{ steps.pr-info.outputs.pr_number }} --json title -q .title)
 
-          # Create new changelog entry
-          NEW_ENTRY="## [Unreleased] - PR #${{ steps.pr-info.outputs.pr_number }} - $TODAY\n\n### Changes\n\n${{ steps.generate-commits.outputs.commit_history }}\n\n"
+          # Create new changelog entry with PR info and commit history
+          NEW_ENTRY="## [Unreleased] - PR #${{ steps.pr-info.outputs.pr_number }}: ${PR_TITLE} - $TODAY\n\n### Changes\n\n${{ steps.generate-commits.outputs.commit_history }}\n\n"
 
           # Insert new entry after the header section
           sed -i '8i\\' .github/CHANGELOG.md
@@ -82,7 +83,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Comment on PR
+      - name: Comment on PR with summary
         if: steps.generate-commits.outputs.commit_count != '0'
         uses: actions/github-script@v6
         with:
@@ -92,5 +93,5 @@ jobs:
               issue_number: ${{ steps.pr-info.outputs.pr_number }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🔄 CHANGELOG.md has been automatically updated with the commit history from this PR.'
+              body: '## 📝 Changelog Updated\n\nThe CHANGELOG.md has been automatically updated with the following commits from this PR:\n\n```\n${{ steps.generate-commits.outputs.commit_history }}\n```\n\nView the full changelog: [CHANGELOG.md](.github/CHANGELOG.md)'
             })

@@ -1,9 +1,9 @@
 # Node.js Compatibility Range Analyzer
 
-[![CodeQL Security Analysis](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml)
-[![Node.js CI](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/node.js.yml)
+[![Code Security Analysis](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/codeql.yml)
+[![Node.js Build & Test](https://github.com/darcher-/nodeVersionRange/actions/workflows/nodejs.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/nodejs.yml)
 [![Dependency Updates](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/dependabot.yml)
-[![Demo Deployment](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml)
+[![Demo Website](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml/badge.svg)](https://github.com/darcher-/nodeVersionRange/actions/workflows/static-page.yml)
 
 <sup><sub>DESCRIPTION</sub></sup>
 
@@ -24,7 +24,7 @@ A CLI tool to **analyze and aggregate Node.js version requirements** for your pr
   - [Change logs](.github/CHANGELOG.md)
   - [Contributing Guide](.github/CONTRIBUTING.md)
   - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
-  - [Security Policy](.github/SECUTIRY.md)
+  - [Security Policy](.github/SECURITY.md)
   - [Licensing](.github/LICENSE.md)
   - [Citation Information](.github/CITATION.md)
   - [Code Owners](.github/CODEOWNERS.md)

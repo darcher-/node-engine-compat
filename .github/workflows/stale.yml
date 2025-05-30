@@ -1,4 +1,4 @@
-name: State Checks
+name: Inactive Issues Monitor
 
 on:
   schedule:
@@ -15,9 +15,9 @@ jobs:
       - uses: actions/stale@v9
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: "This issue has been marked as stale due to inactivity. Please add a comment or update the issue to keep it open."
-          stale-pr-message: "This pull request has been marked as stale due to inactivity. Please update it or leave a comment to keep it open."
-          stale-issue-label: "no-issue-activity"
-          stale-pr-label: "no-pr-activity"
+          stale-issue-message: "⚠️ This issue has been inactive for 60 days and is marked as stale. Please add a comment or update the issue within 7 days to keep it open, otherwise it will be automatically closed."
+          stale-pr-message: "⚠️ This pull request has been inactive for 60 days and is marked as stale. Please update it or leave a comment within 7 days to keep it open, otherwise it will be automatically closed."
+          stale-issue-label: "inactive-issue"
+          stale-pr-label: "inactive-pr"
           days-before-stale: 60
           days-before-close: 7

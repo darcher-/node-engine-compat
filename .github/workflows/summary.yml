@@ -1,4 +1,4 @@
-name: Summarize Issues
+name: AI Issue Summarizer
 
 on:
   issues:
@@ -16,18 +16,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate AI summary
+      - name: Generate concise AI summary
         id: inference
         uses: actions/ai-inference@v1
         with:
           prompt: |
-            Summarize the following GitHub issue in one paragraph:
+            Summarize the following GitHub issue clearly and concisely in one paragraph:
             Title: ${{ github.event.issue.title }}
             Body: ${{ github.event.issue.body }}
 
-      - name: Add summary comment
+      - name: Add summary comment to issue
         run: |
-          gh issue comment $ISSUE_NUMBER --body '${{ steps.inference.outputs.response }}'
+          gh issue comment $ISSUE_NUMBER --body '### 📝 AI Summary\n\n${{ steps.inference.outputs.response }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}

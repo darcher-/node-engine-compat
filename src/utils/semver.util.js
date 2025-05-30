@@ -1,15 +1,21 @@
 /**
- * Compares two semantic version strings (a, b).
- * Returns:
- * - 0 if a === b or both are null/undefined.
- * - -1 if a < b or a is null/undefined and b is not.
- * - 1 if a > b or b is null/undefined and a is not.
- * Note: Handles null as an effective minimum.
- * Limitation: Incorrectly parses versions with pre-release tags or build metadata due to map(Number).
+ * Compares two semantic version strings to determine their relative order.
  *
- * @param {string | null | undefined} a
- * @param {string | null | undefined} b
- * @returns {number}
+ * @param {string | null | undefined} a - First version to compare
+ * @param {string | null | undefined} b - Second version to compare
+ * @returns {number} Comparison result:
+ *   - Returns 0 if versions are equal
+ *   - Returns -1 if version a is lower than b
+ *   - Returns 1 if version a is higher than b
+ *
+ * @example
+ * compareVersions('1.2.3', '1.2.4') // Returns -1
+ * compareVersions('1.10.0', '1.2.0') // Returns 1
+ * compareVersions('1.2.3', '1.2.3') // Returns 0
+ * compareVersions(null, '1.0.0') // Returns -1 (null is treated as minimum version)
+ *
+ * @note Handles null/undefined values as effective minimum versions
+ * @limitation Does not correctly parse versions with pre-release tags or build metadata
  */
 function compareVersions(a, b)
 {
