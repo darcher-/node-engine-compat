@@ -42,6 +42,6 @@ For answers to common questions about this code of conduct, see the FAQ at <http
 
 If you experience or witness unacceptable behavior, or have any other concerns, please report it by contacting the project team at [dylarcher@gmail.com](mailto:dylarcher@gmail.com).
 
-**[nodeVersionManager](../) Project Team**
+**[nodeVersionRange](../) Project Team**
 
 [dylarcher@gmail.com](mailto:dylarcher@gmail.com)
