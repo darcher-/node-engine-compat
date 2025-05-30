@@ -45,7 +45,7 @@ jobs:
         id: generate-commits
         run: |
           # Ensure both base and PR branches are fetched with complete history
-          git fetch --depth=0 origin ${{ steps.branch-info.outputs.base_branch }} ${{ steps.branch-info.outputs.pr_branch }}
+          git fetch --depth=1 origin ${{ steps.branch-info.outputs.base_branch }} ${{ steps.branch-info.outputs.pr_branch }}
 
           # Create a temporary file for the commit history
           TEMP_FILE=$(mktemp)
