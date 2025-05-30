@@ -4,17 +4,13 @@
 
 This file serves as an index to all documentation files in this project.
 
-- [Changelog](.github/changelog.md) - History of changes in each version
-- [Contributing Guide](.github/contributing.md) - How to contribute to this project
-- [Code of Conduct](.github/code_of_conduct.md) - Community guidelines
-- [Security Policy](.github/security.md) - How to report security vulnerabilities
-- [License](.github/license.md) - Project license information
-- [Citation Information](.github/citation.md) - How to cite this project
-- [Code Owners](.github/codeowners.md) - Maintainers and reviewers
-
-## Additional Documentation
-
-- [Project Overview](docs/overview.md) - Introduction to the project
+- [Changelog](.github/CHANGELOG.md) - History of changes in each version
+- [Contributing Guide](.github/CONTRIBUTING.md) - How to contribute to this project
+- [Code of Conduct](.github/CODE_OF_CONDUCT.md) - Community guidelines
+- [Security Policy](.github/SECUTIRY.md) - How to report security vulnerabilities
+- [License](.github/LICENSE.md) - Project license information
+- [Citation Information](.github/CITATION.md) - How to cite this project
+- [Code Owners](.github/CODEOWNERS.md) - Maintainers and reviewers
 
 ## Features
 

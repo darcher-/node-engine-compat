@@ -21,11 +21,13 @@ A CLI tool to **analyze and aggregate Node.js version requirements** for your pr
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 - [Documentation Index](docs.md)
-  - [Changelog](.github/changelog.md)
-  - [Contributing Guide](.github/contributing.md)
-  - [Code of Conduct](.github/code_of_conduct.md)
-  - [Security Policy](.github/security.md)
-  - [License](.github/license.md)
+  - [Change logs](.github/CHANGELOG.md)
+  - [Contributing Guide](.github/CONTRIBUTING.md)
+  - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
+  - [Security Policy](.github/SECUTIRY.md)
+  - [Licensing](.github/LICENSE.md)
+  - [Citation Information](.github/CITATION.md)
+  - [Code Owners](.github/CODEOWNERS.md)
 
 ---
 
