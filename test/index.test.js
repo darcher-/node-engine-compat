@@ -160,21 +160,25 @@ const result = indexModule.calculateCompatibility({
   noExit: true // Use noExit to prevent process.exit
 })
 
-// Check the returned result - dump full details for debugging
-console.log('DEBUG - Full returned result:', result)
-console.log('DEBUG - Result conflict value:', result.conflict, 'typeof:', typeof result.conflict)
-console.log('DEBUG - Result globalMin:', result.globalMin, 'typeof:', typeof result.globalMin)
-console.log('DEBUG - Result globalMax:', result.globalMax, 'typeof:', typeof result.globalMax)
+// Assertions on the returned object when noExit: true
+assert.ok(result, 'Should return a result object when noExit is true')
+assert.strictEqual(result.conflict, true, 'Returned object should indicate conflict')
+assert.strictEqual(result.globalMin, '14.0.0', 'Returned object should have correct globalMin for conflict')
+assert.strictEqual(result.globalMax, '<14.0.0', 'Returned object should have correct globalMax for conflict') // Assuming this is the expected max in a conflict
 
 // Also check the JSON output
-console.log('DEBUG - capturedOutput length:', capturedOutput.length)
-console.log('DEBUG - capturedOutput items:', capturedOutput)
-const conflictResult = JSON.parse(capturedOutput[0])
-console.log('DEBUG - parsed JSON result:', conflictResult)
-assert.strictEqual(conflictResult.conflict, true, 'Should detect version conflict in JSON output')
-assert.strictEqual(conflictResult.globalMin, '14.0.0', 'Should determine correct min in conflict in JSON output')
-assert.strictEqual(conflictResult.globalMax, '<14.0.0', 'Should determine correct max in conflict in JSON output')
-assert(conflictResult.message.includes('Version conflict'), 'Should include conflict message in JSON output')
+let loggedJsonOutput
+for (let i = capturedOutput.length - 1; i >= 0; i--) {
+  try {
+    loggedJsonOutput = JSON.parse(capturedOutput[i])
+    break // Found valid JSON
+  } catch (e) { /* Not JSON, try previous */ }
+}
+assert.ok(loggedJsonOutput, 'Should have logged valid JSON output')
+assert.strictEqual(loggedJsonOutput.conflict, true, 'Logged JSON should detect version conflict')
+assert.strictEqual(loggedJsonOutput.globalMin, '14.0.0', 'Logged JSON should determine correct min in conflict')
+assert.strictEqual(loggedJsonOutput.globalMax, '<14.0.0', 'Logged JSON should determine correct max in conflict') // Assuming this is the expected max in a conflict
+assert(loggedJsonOutput.message.includes('Version conflict'), 'Logged JSON should include conflict message');
 
 // Restore mocks
 process.exit = originalExit
