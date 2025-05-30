@@ -102,4 +102,4 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: '## 📝 Changelog Updated\n\nThe CHANGELOG.md has been automatically updated with the following commits from this PR:\n\n```\n${{ steps.generate-commits.outputs.commit_history }}\n```\n\nView the full changelog: [CHANGELOG.md](.github/CHANGELOG.md)'
-            })
+            });
