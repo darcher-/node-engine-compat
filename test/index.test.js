@@ -189,7 +189,7 @@ const result = indexModule.calculateCompatibility({
 assert.ok(result, 'Should return a result object when noExit is true')
 assert.strictEqual(result.conflict, true, 'Returned object should indicate conflict')
 assert.strictEqual(result.globalMin, '14.0.0', 'Returned object should have correct globalMin for conflict')
-assert.strictEqual(result.globalMax, '14.0.0', 'Returned object should have correct globalMax for conflict (exclusive bound)')
+assert.strictEqual(result.globalMax, '<14.0.0', 'Returned object should have correct globalMax for conflict (exclusive bound)')
 
 // Also check the JSON output
 let loggedJsonOutput
