@@ -93,7 +93,7 @@
     "release": "standard-version",
     "start": "node ./src/index.js",
     "test": "node --test ./test/semver.test.js ./test/package.test.js ./test/logger.test.js ./test/index.test.js ./test/conflict.test.js",
-    "test:coverage": "c8 --include=src/**/*.js --all npm test"
+    "test:coverage": "c8 --reporter=lcov --reporter=text --reporter=json-summary --include=src/**/*.js --all npm test"
   },
   "source": "src/demo/index.html",
   "type": "module",
