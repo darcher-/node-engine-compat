@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-issue-config.json
-# filepath: /Users/darcher/dev/nodeVersionRange/.github/ISSUE_TEMPLATE/config.yml
+# filepath: ~/dev/nodeVersionRange/.github/ISSUE_TEMPLATE/config.yml
 blank_issues_enabled: true
 contact_links:
   - name: 📚 Documentation
