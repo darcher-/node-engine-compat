@@ -150,6 +150,7 @@ assert.strictEqual(nonExistentDep, null, 'Should return null for nonexistent dep
 // Verifies that getDepPkgJson handles a dependency package.json with invalid JSON content.
 // It should return null and log a specific warning.
 const corruptDepDirPath = join(tempDir, 'node_modules', 'corrupt-dep'); // Define path for corrupt dep
+mkdirSync(corruptDepDirPath, { recursive: true }); // Ensure the directory exists
 writeFileSync(join(corruptDepDirPath, 'package.json'), 'this is not valid json {')
 
 const originalLoggerWarn = logger.warn
