@@ -92,10 +92,13 @@
   "scripts": {
     "release": "standard-version",
     "start": "node ./src/index.js",
-    "test": "node --test --test-reporter=spec test/*.test.js",
-    "test:coverage": "c8 --reporter=lcov --reporter=text --reporter=json-summary --include=src/**/*.js --all -- npm test"
+    "test": "node -tr=spec test/*.test.js",
+    "test:coverage": "c8 -c=.github/linters/.c8rc.json -ai=src/**/*.js -- npm test"
   },
   "source": "src/demo/index.html",
   "type": "module",
-  "version": "1.1.0"
+  "version": "1.1.0",
+  "dependencies": {
+    "semver": "^7.7.2"
+  }
 }

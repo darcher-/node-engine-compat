@@ -1,3 +1,6 @@
+import semver from 'semver'
+import logger from './logger.service.js'
+
 /**
  * Compares two semantic version strings to determine their relative order.
  *
@@ -15,7 +18,7 @@
  * compareVersions(null, '1.0.0') // Returns -1 (null is treated as minimum version)
  *
  * @note Handles null/undefined values as effective minimum versions
- * @limitation Does not correctly parse versions with pre-release tags or build metadata
+ * @note Uses the semver library for reliable semantic version comparison
  */
 function compareVersions(a, b) {
   if (a === null || a === undefined) {
@@ -25,9 +28,24 @@ function compareVersions(a, b) {
     return 1 // a is greater as b is null
   }
 
+  // Convert to strings for consistency
+  a = String(a)
+  b = String(b)
+
+  // Use semver library for comparison when possible
+  try {
+    if (semver.valid(a) && semver.valid(b)) {
+      // For standard semver formats, use the library directly
+      return semver.compare(a, b)
+    }
+  } catch (e) {
+    // Fall back to manual comparison if semver library throws an error
+    logger.logVerbose('semver.compare', { message: 'Failed, falling back to manual comparison', a, b, error: e.message })
+  }
+
   // Handle pre-release tags by splitting on hyphen
-  const [aBase, aPrerelease] = String(a).split('-')
-  const [bBase, bPrerelease] = String(b).split('-')
+  const [aBase, aPrerelease] = a.split('-')
+  const [bBase, bPrerelease] = b.split('-')
 
   const pa = aBase.split('.').map(Number)
   const pb = bBase.split('.').map(Number)
@@ -49,7 +67,19 @@ function compareVersions(a, b) {
   if (aPrerelease && !bPrerelease) return -1 // Pre-release is less than release
   if (!aPrerelease && bPrerelease) return 1  // Release is greater than pre-release
   if (aPrerelease && bPrerelease) {
-    // Simple string comparison for pre-release tags
+    // Try to use semver for pre-release comparison if possible
+    try {
+      const fullA = `${aBase}-${aPrerelease}`
+      const fullB = `${bBase}-${bPrerelease}`
+      if (semver.valid(fullA) && semver.valid(fullB)) {
+        return semver.compare(fullA, fullB)
+      }
+    } catch (e) {
+      // Fall back to simple string comparison if semver fails
+      logger.logVerbose('semver.compare', { message: 'Failed for pre-release, using string comparison', a, b })
+    }
+
+    // Simple string comparison for pre-release tags as fallback
     if (aPrerelease < bPrerelease) return -1
     if (aPrerelease > bPrerelease) return 1
   }
@@ -134,8 +164,8 @@ function getImpliedBoundsFromOperator(operator, versionString) {
 
 /**
  * Parses an engines.node version range string.
- * @param {string} range - The range string (e.g., ">=14.0.0 <16.0.0 || ^18.0.0")
- * @returns {[string|null, string|null]} [overallEngineMin, overallEngineMax]
+ * @param {string|null|undefined} range - The range string (e.g., ">=14.0.0 <16.0.0 || ^18.0.0")
+ * @returns {[string|null|undefined, string|null|undefined]} [overallEngineMin, overallEngineMax]
  */
 function parseNodeRange(range) {
   if (!range || typeof range !== 'string') {
@@ -181,6 +211,7 @@ function parseNodeRange(range) {
 
   let overallEngineMin = null
   let overallEngineMax = null
+  const partBounds = [] // Array to collect range bounds from each OR part
 
   const orParts = range.split(/\s*\|\|\s*/)
   if (orParts.length > 1 || (orParts.length === 1 && /([<>]=?|=|~|\^)/.test(orParts[0]))) {
@@ -247,7 +278,22 @@ function parseNodeRange(range) {
       }
     }
     // If, due to conflicting AND conditions, a part is impossible (e.g., >2 <1), min can be > max
-    if (currentPartMin && currentPartMax && compareVersions(currentPartMin, currentPartMax) > 0) {
+    // Use semver.gt for comparison when both versions are valid semver
+    let isImpossibleRange = false
+    if (currentPartMin && currentPartMax) {
+      try {
+        if (semver.valid(currentPartMin) && semver.valid(currentPartMax)) {
+          isImpossibleRange = semver.gt(currentPartMin, currentPartMax)
+        } else {
+          isImpossibleRange = compareVersions(currentPartMin, currentPartMax) > 0
+        }
+      } catch (e) {
+        // Fallback to compareVersions if semver.gt throws an error
+        isImpossibleRange = compareVersions(currentPartMin, currentPartMax) > 0
+      }
+    }
+
+    if (isImpossibleRange) {
       // This part is unsatisfiable, so it doesn't contribute to the OR'd range
       continue
     }
@@ -261,7 +307,7 @@ function parseNodeRange(range) {
   if (partBounds.some(b => b.min === null) || nonNullMins.length === 0) {
     finalMin = null
   } else {
-    finalMin = nonNullMins.reduce((acc, m) => minVer(acc, m))
+    finalMin = nonNullMins.reduce((a, b) => /** @type {string} */(minVer(a, b)))
   }
 
   let finalMax = null
@@ -269,7 +315,7 @@ function parseNodeRange(range) {
   if (partBounds.some(b => b.max === null) || nonNullMaxes.length === 0) {
     finalMax = null
   } else {
-    finalMax = nonNullMaxes.reduce((acc, m) => maxVer(acc, m))
+    finalMax = nonNullMaxes.reduce((a, b) => /** @type {string} */(maxVer(a, b)))
   }
 
   // If not a single part was successfully parsed (excluding non-constraining '*' parts in ORs)
@@ -300,12 +346,14 @@ export default {
   coerceToFullVersion, // Export if needed elsewhere, or keep as internal helper
   getImpliedBoundsFromOperator,
   parseNodeRange,
-  getIntersectingRange // Will be defined below
+  getIntersectingRange // Defined below
 }
 
-import semver from 'semver'
-import logger from './logger.service.js'
-
+/**
+ * @param {string} rangeString1
+ * @param {string} rangeString2
+ * @returns {string | null}
+ */
 function getIntersectingRange(rangeString1, rangeString2) {
   try {
     if (!semver.validRange(rangeString1, { loose: true }) || !semver.validRange(rangeString2, { loose: true })) {
