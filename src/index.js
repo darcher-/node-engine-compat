@@ -46,7 +46,7 @@ import retryUtil from './utils/retry.util.js'
  */
 async function main(argv)
 {
-  const { maxRetries } = argv; // Extracted for use with withRetries
+  const { maxRetries = 0 } = argv; // Extracted for use with withRetries
   const retryDelayMs = 200; // Standard delay for retries
 
   // Use argv.projectPath, which yargs will populate from 'project-path' or 'p' aliases
@@ -113,12 +113,26 @@ async function main(argv)
   const depNames = Object.keys(dependencies)
 
   for (const depName of depNames) {
-    const depPkg = await retryUtil.withRetries(
-      async () => packageUtils?.getDepPkgJson(depName, projectPath), // Wrap sync call
-      maxRetries,
-      retryDelayMs,
-      `fetch dependency package.json: ${depName}`
-    );
+    let depPkg = null;
+    try {
+      depPkg = await retryUtil.withRetries(
+        async () => packageUtils?.getDepPkgJson(depName, projectPath), // Wrap sync call
+        maxRetries,
+        retryDelayMs,
+        `fetch dependency package.json: ${depName}`
+      );
+    } catch (error) {
+      loggerService?.error(
+        'errors.fetchDependencyPackageJson',
+        {
+          depName,
+          projectPath,
+          errorMessage: error.message || 'Unknown error occurred while fetching dependency package.json.'
+        },
+        false
+      );
+      continue; // Skip this dependency and proceed with the next one
+    }
 
     if (
       depPkg &&
