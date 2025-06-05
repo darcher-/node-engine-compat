@@ -108,12 +108,11 @@ test.describe('Semver Utilities', () => {
       assert.deepStrictEqual(semverUtils.parseNodeRange(''), [null, null], "Empty string should result in [null, null]");
 
       const originalWarn = logger.warn;
-      const warnMessages = [];
       logger.warn = (key, data) => { warnMessages.push({ key, data }); };
 
       semverUtils.parseNodeRange("invalid range string"); // This should trigger the warn
       assert.ok(warnMessages.find(m => m.key === 'errors.invalidRangeString' && m.data.range === "invalid range string"), 'Logger should have recorded the parsing error for "invalid range string"');
-      warnMessages.length = 0; // Clear for next assertion
+      // warnMessages is automatically reset before each test
 
       // Test that null input does not trigger the 'errors.invalidRangeString' warning from parseNodeRange itself.
       // parseNodeRange returns [null,null] for null input without logging this specific key.

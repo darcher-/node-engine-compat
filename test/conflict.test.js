@@ -9,10 +9,10 @@ import indexModule from '../src/index.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-let capturedOutput = [] // Declare globally
-const originalConsoleLog = console.log // Make originalConsoleLog global as restoreMocks is global
+const originalConsoleLog = console.log // Keep originalConsoleLog global for restoration
 
 test('Testing conflict detection functionality', (t) => {
+  let capturedOutput = [] // Scope capturedOutput within the test case
   // This test verifies that the script correctly identifies version conflicts
   // Create a temp directory for testing
   const tempDir = join(tmpdir(), `conflict-test-${Date.now()}`)

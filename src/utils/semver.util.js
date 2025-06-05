@@ -273,9 +273,8 @@ import logger from './logger.service.js';
 
 function getIntersectingRange(rangeString1, rangeString2) {
   try {
-    if (rangeString1 === "this-is-not-semver" || rangeString2 === "this-is-not-semver") {
-      // This specific check is from the existing stub, and the test relies on it.
-      // semver.Range might parse "this-is-not-semver" as "*", so direct check is better here.
+    if (!semver.validRange(rangeString1, { loose: true }) || !semver.validRange(rangeString2, { loose: true })) {
+      // Validate range strings using semver.validRange. If invalid, throw an error.
       throw new Error("Invalid range string provided.");
     }
 
