@@ -9,35 +9,22 @@ import indexModule from '../src/index.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const originalConsoleLog = console.log // Keep originalConsoleLog global for restoration
-
-test('Testing conflict detection functionality', (t) => {
-  let capturedOutput = [] // Scope capturedOutput within the test case
-  // This test verifies that the script correctly identifies version conflicts
-  // Create a temp directory for testing
+test('Conflict detection', async (t) => {
+  // Setup: Create a temp directory and mock files
   const tempDir = join(tmpdir(), `conflict-test-${Date.now()}`)
   mkdirSync(tempDir, { recursive: true })
   mkdirSync(join(tempDir, 'node_modules', 'conflict-dep'), { recursive: true })
 
-  // Create test package.json files with a conflict
   const rootPkg = {
     name: 'conflict-project',
-    dependencies: {
-      'conflict-dep': '1.0.0'
-    },
-    engines: {
-      node: '<14.0.0' // Requires Node.js less than 14.0.0
-    }
+    dependencies: { 'conflict-dep': '1.0.0' },
+    engines: { node: '<14.0.0' }
   }
-
   const depPkg = {
     name: 'conflict-dep',
     version: '1.0.0',
-    engines: {
-      node: '>=14.0.0' // Requires Node.js 14.0.0 or greater
-    }
+    engines: { node: '>=14.0.0' }
   }
-
   writeFileSync(join(tempDir, 'package.json'), JSON.stringify(rootPkg, null, 2))
   writeFileSync(join(tempDir, 'node_modules', 'conflict-dep', 'package.json'), JSON.stringify(depPkg, null, 2))
 
@@ -54,7 +41,7 @@ test('Testing conflict detection functionality', (t) => {
 
   // Override process.exit to prevent the test runner from stopping
   // @ts-ignore
-  process.exit = function (code) {
+  process.exit = function(code) {
     exitCalled = true // Track that exit was called
     exitCode = code
     // Don't actually exit
@@ -106,7 +93,7 @@ test('Testing conflict detection functionality', (t) => {
   for (let i = capturedOutput.length - 1; i >= 0; i--) {
     try {
       jsonOutput = JSON.parse(capturedOutput[i])
-      break;
+      break
     } catch (e) { /* Not JSON, try previous */ }
   }
 

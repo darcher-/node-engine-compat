@@ -1,37 +1,38 @@
 {
   "errors": {
     "readParseDependencyPackageJson": {
-      "title": "⚠️ Warning: Could not read or parse package.json for dependency \"{depName}\".",
-      "details": "  Error details: {errorMessage}",
+      "title": "⚠️ Warning: Could not process package.json for dependency '{depName}'.",
+      "details": "  This occurred after any configured retry attempts. Last error: {errorMessage}",
+      "path_checked": "  Path attempted: {depPath}",
       "causes": [
         "  Possible causes:",
-        "    - The dependency \"{depName}\" might not be installed correctly. Try running 'npm install' or 'yarn install'.",
-        "    - The package.json file at \"{depPath}\" might be corrupted or malformed."
+        "    - The dependency '{depName}' might not be installed correctly (try 'npm install' or 'yarn install').",
+        "    - The package.json file might be corrupted, malformed, or unreadable."
       ]
     },
     "readParseRootPackageJson": {
-      "title": "❌ Error: Could not read or parse the root package.json for your project.",
+      "title": "❌ Critical Error: Could not read or parse the main package.json for your project.",
       "path": "  Path checked: {projectPkgPath}",
-      "details": "  Error details: {errorMessage}",
+      "details": "  Last error details: {errorMessage}",
+      "context": "  This error occurred after potential retry attempts (if configured) and is preventing the tool from analyzing your project.",
       "solutions": [
         "  Possible solutions:",
         "    - Ensure you are running this script from the root directory of your Node.js project.",
-        "    - Check if a 'package.json' file exists at this location and is not empty.",
-        "    - Validate that your 'package.json' is a valid JSON file (e.g., check for syntax errors, trailing commas)."
+        "    - Verify that 'package.json' exists at '{projectPkgPath}' and is not empty or malformed.",
+        "    - Check file permissions for the path."
       ]
     },
     "versionConflict": {
-      "title": "❌ Error: Incompatible Node.js version requirements found across your project and its dependencies.",
-      "minRequired": "  Combined minimum Node.js version required: {globalMin}",
-      "maxAllowed": "  Combined maximum Node.js version allowed: {globalMax}",
-      "conflictExplanation": "  This conflict (min {globalMin} > max {globalMax}) means no single Node.js version can satisfy all declared 'engines.node' constraints.",
+      "title": "❌ Node.js Version Conflict Detected",
+      "minRequired": "  Minimum Node.js version required by one or more packages: {globalMin}",
+      "maxAllowed": "  Maximum Node.js version allowed by one or more packages: {globalMax}",
+      "conflictExplanation": "  Conflict: The minimum required version ({globalMin}) is higher than the maximum allowed version ({globalMax}). No single Node.js version can satisfy all declared 'engines.node' constraints.",
       "solutions": [
-        "  Possible ways to resolve this:",
-        "    1. Examine your project's 'package.json' and the 'package.json' files of its direct dependencies.",
-        "       Look for their 'engines.node' fields to identify the sources of the conflicting versions.",
-        "    2. Update dependencies: Newer versions of packages might have broader or more compatible Node.js version requirements.",
-        "    3. Adjust your project's 'engines.node' in its 'package.json' if it's overly restrictive or conflicts with essential dependencies.",
-        "    4. If a specific dependency is problematic, check its issue tracker for known compatibility problems or consider alternatives."
+        "  To resolve this:",
+        "    1. Review 'engines.node' in your project's 'package.json' and in those of its dependencies to find the conflicting declarations.",
+        "    2. Consider updating dependencies; newer versions may have more compatible Node.js requirements.",
+        "    3. Adjust your project's 'engines.node' in its 'package.json' if it's overly restrictive or directly causing the conflict.",
+        "    4. For problematic individual dependencies, check their issue trackers for known compatibility issues or consider seeking alternatives."
       ]
     },
     "invalidRangeString": {
@@ -59,10 +60,16 @@
     }
   },
   "info": {
-    "determinedRangeMinMax": "✅ Determined compatible Node.js range: >={globalMin} <={globalMax}",
-    "determinedRangeMinOnly": "✅ Determined compatible Node.js range: >={globalMin}",
-    "determinedRangeMaxOnly": "✅ Determined compatible Node.js range: <={globalMax}",
-    "noConstraintsFound": "ℹ️ No specific Node.js version constraints found in project or its direct dependencies.",
-    "dependencyProcessed": "🔍 Processed dependency: {depName} (node engine: {nodeEngine}, min: {min}, max: {max})"
+    "determinedRangeMinMax": "✅ Compatible Node.js version range: {globalMin} - {globalMax}",
+    "determinedRangeMinOnly": "✅ Compatible Node.js version: >={globalMin}",
+    "determinedRangeMaxOnly": "✅ Compatible Node.js version: <={globalMax}",
+    "noConstraintsFound": "ℹ️ No specific Node.js version constraints were found in the project or its direct dependencies.",
+    "dependencyProcessed": "🔍 Analyzed: {depName} (Node requirement: '{nodeEngine}', Effective: min {min}, max {max})"
+  },
+  "warn": {
+    "retryAttempt": {
+      "title": "⚠️ Operation '{operationName}' failed (failure {failureCount} of {maxConfiguredRetries}). Retrying in {delayMs}ms...",
+      "details": "  Underlying error: {errorMessage}"
+    }
   }
 }

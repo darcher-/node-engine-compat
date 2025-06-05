@@ -6,22 +6,25 @@ import yargs from 'yargs/yargs'
 import loggerService from './utils/logger.service.js'
 import packageUtils from './utils/package.util.js'
 import semverUtils from './utils/semver.util.js'
+import retryUtil from './utils/retry.util.js'
 
 // Define a type for the parsed command line arguments.
 /**
  * @typedef {object} Param
  * @property {string} [projectPath] - The path to the project directory to analyze. Defaults to the current working directory.
- * @property {string} [project-path] - Alias for `projectPath`.
  * @property {boolean} [json] - Flag to output the results in JSON format.
  * @property {boolean} [noDev] - Flag to exclude `devDependencies` from the analysis.
- * @property {boolean} [no-dev] - Alias for `noDev`.
  * @property {boolean} [verbose] - Flag to enable verbose logging for debugging purposes.
  * @property {boolean} [noExit] - Flag to prevent the script from calling `process.exit()` on conflict.
- * // Properties added by yargs
+ * @property {number} [maxRetries] - Maximum number of times to retry fetching package data on failure.
+ * // Properties added by yargs (some may be aliases defined in the configuration)
+ * @property {string} ['project-path'] - Alias for `projectPath`.
+ * @property {string} [p] - Alias for `projectPath`.
+ * @property {boolean} ['no-dev'] - Alias for `noDev`.
+ * @property {string} [v] - Alias for `verbose`.
+ * @property {number} [retries] - Alias for `maxRetries`.
  * @property {(string|number)[]} [_] - Positional arguments.
  * @property {string} [$0] - The original command that was run.
- * @property {string} [v] - Alias for `verbose`.
- * @property {string} [p] - Alias for `project-path`.
  * @property {boolean} [help] - Flag to display help message.
  * @property {boolean} [h] - Alias for `help`.
  * @property {boolean} [version] - Flag to display version number.
@@ -34,19 +37,43 @@ import semverUtils from './utils/semver.util.js'
  * the minimum and maximum Node.js versions required.
  * It outputs the results in a human-readable format or as JSON based on command line arguments.
  * @param {Param} argv
- * @returns {{ globalMin: string|null, globalMax: string|null, conflict: boolean }}
- *   An object containing:
+ * @returns {Promise<{ globalMin: string|null, globalMax: string|null, conflict: boolean }>}
+ *   A Promise resolving to an object containing:
  *   - `globalMin`: The highest minimum Node.js version required across all analyzed packages, or null if no lower bound is specified.
  *   - `globalMax`: The lowest maximum Node.js version allowed across all analyzed packages, or null if no upper bound is specified. Note: this is potentially exclusive depending on the source constraint but represented inclusively in the return value for simplicity, consistent with the script's output format.
  *   - `conflict`: A boolean indicating whether a version conflict was detected (`globalMin` is greater than `globalMax`).
- * @throws {Error} If the root package.json cannot be read or parsed and `noExit` is false.
+ * @throws {Error} If the root package.json cannot be read or parsed (after retries) and `noExit` is false.
  */
-function main(argv)
+async function main(argv)
 {
+  const { maxRetries = 0 } = argv; // Extracted for use with withRetries
+  const retryDelayMs = 200; // Standard delay for retries
+
+  // Use argv.projectPath, which yargs will populate from 'project-path' or 'p' aliases
   const projectPath = typeof argv?.projectPath === 'string' ? argv.projectPath : process.cwd()
   const projectPkgPath = join(projectPath, 'package.json')
-  const pkg = packageUtils?.getRootPkgJson(projectPkgPath)
-  if (!pkg) return { globalMin: null, globalMax: null, conflict: false }
+
+  const pkg = await retryUtil.withRetries(
+    async () => packageUtils?.getRootPkgJson(projectPkgPath), // Wrap sync call
+    maxRetries,
+    retryDelayMs,
+    `fetch root package.json from ${projectPkgPath}`
+  );
+
+  if (!pkg) {
+    // This path should ideally not be taken if getRootPkgJson (via withRetries) always throws on actual read/parse errors.
+    // An error thrown from withRetries would be caught by the main .catch block.
+    // This block serves as a safeguard if pkg somehow becomes null without an exception.
+    loggerService?.error(
+      'errors.readParseRootPackageJson', // Using the updated key from messages.json
+      {
+        projectPkgPath,
+        errorMessage: "Failed to obtain root package.json; the operation resolved to null after potential retries."
+      },
+      !argv.noExit
+    );
+    return { globalMin: null, globalMax: null, conflict: false };
+  }
 
   let globalMin = null
   let globalMax = null
@@ -80,12 +107,33 @@ function main(argv)
     }
   }
 
+  // Check both the canonical option and its alias since tests might pass the alias directly.
   const excludeDevDeps = !!(argv.noDev || argv['no-dev'])
   const dependencies = packageUtils?.getDeps(pkg, excludeDevDeps)
   const depNames = Object.keys(dependencies)
 
   for (const depName of depNames) {
-    const depPkg = packageUtils?.getDepPkgJson(depName, projectPath)
+    let depPkg = null;
+    try {
+      depPkg = await retryUtil.withRetries(
+        async () => packageUtils?.getDepPkgJson(depName, projectPath), // Wrap sync call
+        maxRetries,
+        retryDelayMs,
+        `fetch dependency package.json: ${depName}`
+      );
+    } catch (error) {
+      loggerService?.error(
+        'errors.fetchDependencyPackageJson',
+        {
+          depName,
+          projectPath,
+          errorMessage: error.message || 'Unknown error occurred while fetching dependency package.json.'
+        },
+        false
+      );
+      continue; // Skip this dependency and proceed with the next one
+    }
+
     if (
       depPkg &&
       typeof depPkg === 'object' &&
@@ -194,26 +242,34 @@ function main(argv)
 
   const argv = yargs(hideBin(process.argv))
     // Option to specify the project path
-    .option('project-path', {
-      alias: 'p',
+    .option('projectPath', {
+      alias: ['p', 'project-path'], // Keep 'project-path' as an alias for CLI
       type: 'string',
-      description: 'Path to the project directory'
+      description: 'Path to the project directory. Defaults to current working directory.'
     })
     // Option to output results in JSON format
     .option('json', {
       type: 'boolean',
-      description: 'Output results in JSON format'
+      description: 'Output results in JSON format.'
     })
     // Option to exclude devDependencies from analysis
-    .option('no-dev', {
+    .option('noDev', {
+      alias: 'no-dev', // Keep 'no-dev' as an alias for CLI
       type: 'boolean',
-      description: 'Exclude devDependencies from analysis'
+      description: 'Exclude devDependencies from analysis.'
     })
     // Option for verbose logging
     .option('verbose', {
       alias: 'v',
       type: 'boolean',
-      description: 'Run with verbose logging'
+      description: 'Run with verbose logging.'
+    })
+    // New option for maximum retries
+    .option('maxRetries', {
+      alias: ['retries', 'max-retries'], // Add 'max-retries' for CLI consistency
+      type: 'number',
+      description: 'Maximum number of times to retry fetching package data on failure.',
+      default: 0
     })
     // Option to display the version number
     .version()
@@ -223,15 +279,34 @@ function main(argv)
     .alias('help', 'h')
     // Alias for version option
     .alias('version', 'V')
+    // Ensure all descriptions are used in the help message.
+    // Yargs typically does this by default, but adding usage text can enhance it.
+    .usage('Usage: $0 [options]')
+    // Example of how to use the command
+    .example('$0 -p /path/to/project --no-dev', 'Analyze a project excluding dev dependencies')
+    .example('$0 --json --retries 3', 'Analyze current project, output as JSON, and retry up to 3 times on failure')
+    // Wrap ensures the help message fits the terminal width
+    .wrap(yargs(hideBin(process.argv)).terminalWidth())
     .argv
 
   // Run the main function with the parsed arguments.
-  // Using Promise.resolve().then() allows for easier testing and potential
-  // future async operations within argument parsing if needed, although not strictly
-  // necessary for the current synchronous yargs.
-  Promise.resolve(argv).then(
-    (resolvedArgv) => main(resolvedArgv)
-  )
+  // Using Promise.resolve().then() to handle the async main function
+  Promise.resolve(argv)
+    .then(resolvedArgv => main(resolvedArgv))
+    .catch(error => {
+      // Handle errors propagated from main (e.g., after all retries failed for getRootPkgJson or getDepPkgJson)
+      // The retryUtil's loggerService.error('errors.retryFailed', ...) would have already logged specifics about the failed operation.
+      // This is a more general catch-all for the application.
+      const errorMessage = (error instanceof Error ? error.message : String(error));
+      loggerService.error(
+        'errors.unexpectedError',
+        { errorMessage },
+        !argv.noExit // Force exit if noExit is false
+      );
+      // If loggerService.error doesn't exit (e.g. if argv.noExit is true),
+      // and we are in a situation where we must exit, ensure it happens.
+      // However, loggerService.error is already handling the !argv.noExit logic.
+    });
 
 export default {
   calculateCompatibility: main,
