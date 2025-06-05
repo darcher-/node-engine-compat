@@ -111,8 +111,8 @@ try {
   const invalidPath = join(tempDir, 'nonexistent.json')
   const result = packageUtils.getRootPkgJson(invalidPath)
 
-  // Asserts that process.exit was called.
-  assert(exitCalled, 'Should call process.exit for nonexistent file')
+  // Asserts that process.exit was NOT called.
+  assert(!exitCalled, 'Should NOT call process.exit for nonexistent file because getRootPkgJson now handles it gracefully.')
   // Asserts that the function returns null when the file is not found.
   assert.strictEqual(result, null, 'Should return null for nonexistent file')
   // Restore the original process.exit function.
@@ -149,22 +149,25 @@ assert.strictEqual(nonExistentDep, null, 'Should return null for nonexistent dep
 // Test dependency with corrupt package.json
 // Verifies that getDepPkgJson handles a dependency package.json with invalid JSON content.
 // It should return null and log a specific warning.
-writeFileSync(join(corruptDepDir, 'package.json'), 'this is not valid json {')
+const corruptDepDirPath = join(tempDir, 'node_modules', 'corrupt-dep'); // Define path for corrupt dep
+writeFileSync(join(corruptDepDirPath, 'package.json'), 'this is not valid json {')
 
 const originalLoggerWarn = logger.warn
 let warnCalledWithCorrectKey = false
 // @ts-ignore
 // Mock logger.warn to check if it's called with the expected message key and arguments.
-logger.warn = (key, ...args) => {
+logger.warn = (key, details) => {
   if (
-    key === 'package.missingDepPackageJson' &&
-    args[0] &&
-    typeof args[0] === 'object' &&
-    warnCalledWithCorrectKey = true
-}
+    key === 'errors.readParseDependencyPackageJson' && // Corrected key
+    details &&
+    typeof details === 'object' &&
+    details.depName === 'corrupt-dep'
+  ) {
+    warnCalledWithCorrectKey = true;
+  }
   // Call original or a simplified mock if necessary for other parts of the test
-  // if (typeof originalLoggerWarn === 'function') originalLoggerWarn(key, ...args);
-}
+  // if (typeof originalLoggerWarn === 'function') originalLoggerWarn(key, details);
+};
 
 const corruptDep = packageUtils.getDepPkgJson('corrupt-dep', tempDir)
 // Asserts that the function returns null for a dependency with a corrupt package.json.

@@ -191,4 +191,26 @@ const logger = {
   }
 }
 
-export default logger
+/**
+ * Logs a message if the VERBOSE environment variable is set to "true".
+ * Stringifies objects for readability.
+ * @param {string} prefix - A prefix string for the log message.
+ * @param {any} messageOrObject - The message or object to log.
+ */
+const logVerboseFunc = (prefix, messageOrObject) => {
+  if (process.env.VERBOSE === "true") {
+    const messagePrefix = `${FG_CYAN}${prefix}${RESET}`; // Cyan prefix consistent with test expectations for highlighted info
+    if (typeof messageOrObject === 'object' && messageOrObject !== null) {
+      console.log(messagePrefix, JSON.stringify(messageOrObject, null, 2));
+    } else {
+      console.log(messagePrefix, messageOrObject);
+    }
+  }
+};
+
+const loggerWithVerbose = {
+  ...logger,
+  logVerbose: logVerboseFunc
+};
+
+export default loggerWithVerbose

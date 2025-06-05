@@ -5,23 +5,15 @@ import logger from '../src/utils/logger.service.js'; // Import logger
 import semverUtils from '../src/utils/semver.util.js'
 
 test.describe('Semver Utilities', () => {
-  const originalLoggerError = logger.error
-  let loggerErrorOutput = [];
-  // Mocking the logger.error function to capture its output for assertions.
-  // This helps verify that specific error conditions trigger logging as expected,
-  // without affecting the actual console output during testing.
-  // We capture the logged messages in the `loggerErrorOutput` array.
+  // let loggerErrorOutput = []; // Will use mock.calls instead
 
   test.beforeEach(() => {
-    // Mock logger.error
-    loggerErrorOutput = []
-    logger.error = (...args) => {
-      loggerErrorOutput.push(args.map(arg => arg instanceof Error ? arg.message : String(arg)).join(' '))
-    }
+    // Mock logger.error using node:test mock API
+    test.mock.method(logger, 'error', () => {});
   });
 
   test.afterEach(() => {
-    logger.error = originalLoggerError // Restore original logger.error
+    test.mock.restoreAll(); // Restore original logger.error
   });
 
   test.describe('compareVersions', () => {
@@ -113,10 +105,22 @@ test.describe('Semver Utilities', () => {
     })
     // Tests handling of edge cases for parseNodeRange, including empty strings and potentially invalid inputs.
     test('edge cases', () => {
-      assert.deepStrictEqual(semverUtils.parseNodeRange(''), [null, null])
-      assert.ok(loggerErrorOutput.some(msg => typeof msg === 'string' && msg.includes('Failed to parse range: invalid range string')), 'Logger should have recorded the parsing error for "invalid range string"')
-      assert.ok(loggerErrorOutput.some(msg => typeof msg === 'string' && (msg.includes('Failed to parse range: null') || msg.includes('Invalid range specified: null'))), 'Logger should have recorded the parsing error for null');
+      assert.deepStrictEqual(semverUtils.parseNodeRange(''), [null, null], "Empty string should result in [null, null]");
 
+      const originalWarn = logger.warn;
+      const warnMessages = [];
+      logger.warn = (key, data) => { warnMessages.push({ key, data }); };
+
+      semverUtils.parseNodeRange("invalid range string"); // This should trigger the warn
+      assert.ok(warnMessages.find(m => m.key === 'errors.invalidRangeString' && m.data.range === "invalid range string"), 'Logger should have recorded the parsing error for "invalid range string"');
+      warnMessages.length = 0; // Clear for next assertion
+
+      // Test that null input does not trigger the 'errors.invalidRangeString' warning from parseNodeRange itself.
+      // parseNodeRange returns [null,null] for null input without logging this specific key.
+      semverUtils.parseNodeRange(null);
+      assert.ok(!warnMessages.find(m => m.key === 'errors.invalidRangeString'), 'Logger should not log "errors.invalidRangeString" for null input to parseNodeRange');
+
+      logger.warn = originalWarn; // Restore
     })
   });
 
@@ -145,10 +149,10 @@ test.describe('Semver Utilities', () => {
       const result = semverUtils.getIntersectingRange(range1, range2, logger);
 
       assert.strictEqual(result, null, "Should return null on unexpected error")
-      assert.ok(
-        loggerErrorOutput.some(msg => msg.includes("Error calculating intersection:") && msg.includes("Simulated semver.Range construction error")),
-        "Should log the specific error from semver.Range construction"
-      );
+      assert.strictEqual(logger.error.mock.calls.length, 1, "logger.error should have been called once");
+      const logArgs = logger.error.mock.calls[0].arguments;
+      assert.strictEqual(logArgs[0], 'errors.semverIntersectError', "Should log with correct error key");
+      assert.ok(logArgs[1].error.includes("Simulated semver.Range construction error"), "Logged error details should include the simulated message");
 
       semver.Range = originalRangeConstructor // Restore original method
     });
@@ -158,12 +162,12 @@ test.describe('Semver Utilities', () => {
     test('should return null and log error for completely invalid range strings that cause semver.Range to fail', () => {
       // semver.Range constructor might throw if a range is fundamentally unparseable
       // beyond what our initial simple regex check in parseNodeRange might catch.
-      const result = semverUtils.getIntersectingRange("this-is-not-semver", ">=1.0.0", logger)
+      const result = semverUtils.getIntersectingRange("this-is-not-semver", ">=1.0.0") // logger no longer passed
       assert.strictEqual(result, null)
-      assert.ok(
-        loggerErrorOutput.some(msg => msg.includes("Error calculating intersection:")),
-        "Should log an error for invalid semver range during intersection"
-      )
+      assert.strictEqual(logger.error.mock.calls.length, 1, "logger.error should have been called once for invalid range string");
+      const logArgs = logger.error.mock.calls[0].arguments;
+      assert.strictEqual(logArgs[0], 'errors.semverIntersectError', "Should log with correct error key for invalid range");
+      assert.ok(logArgs[1].error.includes("Invalid range string provided."), "Logged error details should include the invalid range message");
     })
   })
 });

@@ -33,6 +33,29 @@
         "    3. Adjust your project's 'engines.node' in its 'package.json' if it's overly restrictive or conflicts with essential dependencies.",
         "    4. If a specific dependency is problematic, check its issue tracker for known compatibility problems or consider alternatives."
       ]
+    },
+    "invalidRangeString": {
+      "title": "⚠️ Warning: Could not parse the Node.js version range string \"{range}\".",
+      "details": "  This range string was found in an 'engines.node' field but could not be fully understood.",
+      "causes": [
+        "  Possible causes:",
+        "    - The string might contain unsupported operators or syntax.",
+        "    - There might be a typo in the version range."
+      ],
+      "solutions": [
+        "  Possible solutions:",
+        "    - Please check the 'engines.node' field for the package associated with this range.",
+        "    - Ensure the range string adheres to standard semver range syntax (e.g., '>=14.0.0', '^16.0.0 || >=18.0.0')."
+      ]
+    },
+    "semverIntersectError": {
+      "title": "⚙️ Error: An internal error occurred while trying to intersect semver ranges: {range1} and {range2}.",
+      "details": "  Error details: {error}",
+      "solutions": [
+        "  Possible solutions:",
+        "    - This may indicate an issue with the semver parsing library or an extremely complex/unusual range combination.",
+        "    - Please report this error along with the problematic version ranges if it persists."
+      ]
     }
   },
   "info": {

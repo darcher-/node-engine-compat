@@ -74,8 +74,8 @@ function getRootPkgJson(projectPkgPath)
     logger.error('errors.readParseRootPackageJson', {
       projectPkgPath: projectPkgPath,
       errorMessage: (error && typeof error === 'object' && 'message' in error) ? error.message : String(error)
-    }, true) // true to exit
-    return null // Will not be reached if error occurs due to process.exit
+    }, false) // Set exit to false, so it just logs and allows returning null
+    return null
   }
 }
 
