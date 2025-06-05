@@ -40,7 +40,7 @@ jobs:
           git push origin $BRANCH_NAME
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           branch: ${{ steps.create_branch.outputs.branch_name }} # Correctly reference the branch name
           title: "Update Documentation"
