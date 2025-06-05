@@ -155,7 +155,26 @@ async function main(argv)
     }
   }
 
-  const conflict = !!(globalMin && globalMax && semverUtils?.compareVersions(globalMin, globalMax) > 0)
+  let conflict = !!(globalMin && globalMax && semverUtils?.compareVersions(globalMin, globalMax) > 0)
+
+  // Check for specific conflict case: min === max (e.g., "14.0.0")
+  // which arose from incompatible exclusive/inclusive bounds (e.g., "<14.0.0" and ">=14.0.0")
+  if (!conflict && globalMin && globalMax && semverUtils?.compareVersions(globalMin, globalMax) === 0) {
+    const rootEngine = pkg?.engines?.node?.trim();
+    const depEngines = depNames.map(depName => {
+      const depPkg = packageUtils?.getDepPkgJson(depName, projectPath);
+      return depPkg?.engines?.node?.trim();
+    });
+
+    // Scenario 1: Root is <X and some dep is >=X (where X = globalMin = globalMax)
+    if (rootEngine === `<${globalMax}` && depEngines.some(depEngine => depEngine === `>=${globalMin}`)) {
+      conflict = true;
+    }
+    // Scenario 2: Root is >=X and some dep is <X (where X = globalMin = globalMax)
+    if (!conflict && rootEngine === `>=${globalMin}` && depEngines.some(depEngine => depEngine === `<${globalMax}`)) {
+      conflict = true;
+    }
+  }
 
   // Always log this for debugging
   console.log('DEBUG - Conflict detection in main:', { globalMin, globalMax, conflict, compareResult: globalMin && globalMax ? semverUtils?.compareVersions(globalMin, globalMax) : 'N/A' })

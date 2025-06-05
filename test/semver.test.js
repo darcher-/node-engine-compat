@@ -1,28 +1,20 @@
 import assert from 'node:assert'
 import test from 'node:test'
-import semver from 'semver'; // Import semver for monkey-patching
-import logger from '../src/utils/logger.service.js'; // Import logger
+import semver from 'semver' // Import semver for monkey-patching
+import logger from '../src/utils/logger.service.js' // Import logger
 import semverUtils from '../src/utils/semver.util.js'
 
 test.describe('Semver Utilities', () => {
-  const originalLoggerError = logger.error
-  let loggerErrorOutput = [];
-  // Mocking the logger.error function to capture its output for assertions.
-  // This helps verify that specific error conditions trigger logging as expected,
-  // without affecting the actual console output during testing.
-  // We capture the logged messages in the `loggerErrorOutput` array.
+  // let loggerErrorOutput = []; // Will use mock.calls instead
 
   test.beforeEach(() => {
-    // Mock logger.error
-    loggerErrorOutput = []
-    logger.error = (...args) => {
-      loggerErrorOutput.push(args.map(arg => arg instanceof Error ? arg.message : String(arg)).join(' '))
-    }
-  });
+    // Mock logger.error using node:test mock API
+    test.mock.method(logger, 'error', () => { })
+  })
 
   test.afterEach(() => {
-    logger.error = originalLoggerError // Restore original logger.error
-  });
+    test.mock.restoreAll() // Restore original logger.error
+  })
 
   test.describe('compareVersions', () => {
     // Test case to verify that compareVersions returns 0 for equal versions.
@@ -54,7 +46,7 @@ test.describe('Semver Utilities', () => {
       assert.ok(semverUtils.compareVersions('1.2.3', '1.2.3-beta') > 0)
       assert.ok(semverUtils.compareVersions('1.2.3-alpha', '1.2.3-beta') < 0)
     })
-  });
+  })
 
   test.describe('minVer and maxVer', () => {
     test('minVer should return the smaller version', () => {
@@ -70,7 +62,7 @@ test.describe('Semver Utilities', () => {
       assert.strictEqual(semverUtils.maxVer('1.2.3', null), '1.2.3')
       assert.strictEqual(semverUtils.maxVer(null, null), null)
     })
-  });
+  })
 
   test.describe('getImpliedBoundsFromOperator', () => {
     // Tests the interpretation of the caret (^) operator for major versions > 0.
@@ -111,18 +103,70 @@ test.describe('Semver Utilities', () => {
     // Tests handling of edge cases for parseNodeRange, including empty strings and potentially invalid inputs.
     test('edge cases', () => {
       assert.deepStrictEqual(semverUtils.parseNodeRange(''), [null, null], "Empty string should result in [null, null]")
-      // semverUtils.parseNodeRange now returns [null, null] for invalid/unparseable strings
-      // without explicitly logging an error itself. Error logging would be the caller's responsibility.
-      assert.deepStrictEqual(semverUtils.parseNodeRange('invalid range string'), [null, null], "Invalid string should result in [null, null]")
-      assert.deepStrictEqual(semverUtils.parseNodeRange(null), [null, null], "Null input should result in [null, null]")
-      // Ensure no errors were logged by parseNodeRange directly for these cases by checking loggerErrorOutput
-      // This depends on loggerErrorOutput being reset before this test if it's part of a larger describe block
-      // For now, assuming these specific calls to parseNodeRange don't log.
-    })
-  });
 
-  // Removed test.describe('getIntersectingRange error handling', ...) as the function is not implemented/exported.
-});
+      const originalWarn = logger.warn
+      logger.warn = (key, data) => { warnMessages.push({ key, data }) }
+
+      semverUtils.parseNodeRange("invalid range string") // This should trigger the warn
+      assert.ok(warnMessages.find(m => m.key === 'errors.invalidRangeString' && m.data.range === "invalid range string"), 'Logger should have recorded the parsing error for "invalid range string"')
+      // warnMessages is automatically reset before each test
+
+      // Test that null input does not trigger the 'errors.invalidRangeString' warning from parseNodeRange itself.
+      // parseNodeRange returns [null,null] for null input without logging this specific key.
+      semverUtils.parseNodeRange(null)
+      assert.ok(!warnMessages.find(m => m.key === 'errors.invalidRangeString'), 'Logger should not log "errors.invalidRangeString" for null input to parseNodeRange')
+
+      logger.warn = originalWarn // Restore
+    })
+  })
+
+  test.describe('getIntersectingRange error handling', () => {
+    // Tests that getIntersectingRange gracefully handles unexpected errors that might occur
+    // within the underlying `semver` library during range intersection calculations.
+    // It mocks the `semver.Range` constructor to simulate such an error.
+    test('should handle unexpected errors during semver intersection and log them', () => {
+      const originalRangeConstructor = semver.Range
+      let constructorCalled = false
+
+      // Monkey-patch semver.Range constructor to throw an error on the second instantiation
+      // This simulates an error deeper within semver library usage.
+      // @ts-ignore
+      semver.Range = function(rangeStr) {
+        if (constructorCalled) { // Throw on the second call (for range2)
+          throw new Error("Simulated semver.Range construction error")
+        }
+        constructorCalled = true
+        // @ts-ignore
+        return new originalRangeConstructor(rangeStr, {}) // Call original with options if needed
+      }
+
+      const range1 = ">=14.0.0"
+      const range2 = "<16.0.0" // This instantiation will cause the mock to throw
+      const result = semverUtils.getIntersectingRange(range1, range2, logger)
+
+      assert.strictEqual(result, null, "Should return null on unexpected error")
+      assert.strictEqual(logger.error.mock.calls.length, 1, "logger.error should have been called once")
+      const logArgs = logger.error.mock.calls[0].arguments
+      assert.strictEqual(logArgs[0], 'errors.semverIntersectError', "Should log with correct error key")
+      assert.ok(logArgs[1].error.includes("Simulated semver.Range construction error"), "Logged error details should include the simulated message")
+
+      semver.Range = originalRangeConstructor // Restore original method
+    })
+
+    // Tests that getIntersectingRange handles cases where the input range strings
+    // are so invalid that the `semver.Range` constructor itself throws an error.
+    test('should return null and log error for completely invalid range strings that cause semver.Range to fail', () => {
+      // semver.Range constructor might throw if a range is fundamentally unparseable
+      // beyond what our initial simple regex check in parseNodeRange might catch.
+      const result = semverUtils.getIntersectingRange("this-is-not-semver", ">=1.0.0") // logger no longer passed
+      assert.strictEqual(result, null)
+      assert.strictEqual(logger.error.mock.calls.length, 1, "logger.error should have been called once for invalid range string")
+      const logArgs = logger.error.mock.calls[0].arguments
+      assert.strictEqual(logArgs[0], 'errors.semverIntersectError', "Should log with correct error key for invalid range")
+      assert.ok(logArgs[1].error.includes("Invalid range string provided."), "Logged error details should include the invalid range message")
+    })
+  })
+})
 
 // Additional test cases for getImpliedBoundsFromOperator outside of the describe block
 // Tests caret (^) operator for major version 0, minor > 0.

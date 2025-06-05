@@ -35,14 +35,28 @@
         "    4. For problematic individual dependencies, check their issue trackers for known compatibility issues or consider seeking alternatives."
       ]
     },
-    "retryFailed": {
-      "title": "❌ Operation '{operationName}' failed definitively after {totalAttemptsMade} attempts.",
-      "details": "  Last error: {errorMessage}"
+    "invalidRangeString": {
+      "title": "⚠️ Warning: Could not parse the Node.js version range string \"{range}\".",
+      "details": "  This range string was found in an 'engines.node' field but could not be fully understood.",
+      "causes": [
+        "  Possible causes:",
+        "    - The string might contain unsupported operators or syntax.",
+        "    - There might be a typo in the version range."
+      ],
+      "solutions": [
+        "  Possible solutions:",
+        "    - Please check the 'engines.node' field for the package associated with this range.",
+        "    - Ensure the range string adheres to standard semver range syntax (e.g., '>=14.0.0', '^16.0.0 || >=18.0.0')."
+      ]
     },
-    "unexpectedError": {
-      "title": "❌ An unexpected error occurred during execution.",
-      "details": "  Error: {errorMessage}",
-      "suggestion": "  If the problem persists, try running with --verbose for more details or check the application logs."
+    "semverIntersectError": {
+      "title": "⚙️ Error: An internal error occurred while trying to intersect semver ranges: {range1} and {range2}.",
+      "details": "  Error details: {error}",
+      "solutions": [
+        "  Possible solutions:",
+        "    - This may indicate an issue with the semver parsing library or an extremely complex/unusual range combination.",
+        "    - Please report this error along with the problematic version ranges if it persists."
+      ]
     }
   },
   "info": {

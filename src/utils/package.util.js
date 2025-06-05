@@ -9,8 +9,7 @@ import logger from '../utils/logger.service.js'
  * @param {boolean} [excludeDevDeps=false] - Whether to exclude devDependencies.
  * @returns {object} An object containing dependency names as keys and their versions as values.
  */
-function getDeps(pkg, excludeDevDeps = false)
-{
+function getDeps(pkg, excludeDevDeps = false) {
   if (typeof pkg !== 'object' || pkg === null) {
     throw new TypeError('pkg must be a non-null object')
   }
@@ -33,21 +32,20 @@ function getDeps(pkg, excludeDevDeps = false)
  * @returns {object} Parsed package.json object.
  * @throws {Error} If the file cannot be read or parsed, or if depName/projectPath are invalid.
  */
-function getDepPkgJson(depName, projectPath)
-{
+function getDepPkgJson(depName, projectPath) {
   if (typeof depName !== 'string' || typeof projectPath !== 'string') {
     // This error is a programming error, not something retries would fix.
-    throw new TypeError('depName and projectPath must be strings');
+    throw new TypeError('depName and projectPath must be strings')
   }
-  const depPath = join(projectPath, 'node_modules', depName, 'package.json');
+  const depPath = join(projectPath, 'node_modules', depName, 'package.json')
   // Errors from readFileSync (e.g., file not found) or JSON.parse (e.g., malformed JSON)
   // will now propagate up to be caught by withRetries.
-  const fileContent = readFileSync(depPath, 'utf8');
-  const parsedPkg = JSON.parse(fileContent);
+  const fileContent = readFileSync(depPath, 'utf8')
+  const parsedPkg = JSON.parse(fileContent)
   if (typeof parsedPkg !== 'object' || parsedPkg === null) {
-    throw new Error(`Parsed package.json for ${depName} is not an object or is null.`);
+    throw new Error(`Parsed package.json for ${depName} is not an object or is null.`)
   }
-  return parsedPkg;
+  return parsedPkg
 }
 
 /**
@@ -57,20 +55,25 @@ function getDepPkgJson(depName, projectPath)
  * @throws {Error} If the file cannot be read or parsed.
  * @returns {object} Parsed package.json object.
  */
-function getRootPkgJson(projectPkgPath)
-{
+function getRootPkgJson(projectPkgPath) {
   if (typeof projectPkgPath !== 'string') {
     // This error is a programming error, not something retries would fix.
-    throw new TypeError('projectPkgPath must be a string');
+    throw new TypeError('projectPkgPath must be a string')
   }
-  // Errors from readFileSync (e.g., file not found) or JSON.parse (e.g., malformed JSON)
-  // will now propagate up to be caught by withRetries.
-  const rootPkgContent = readFileSync(projectPkgPath, 'utf8');
-  const parsed = JSON.parse(rootPkgContent);
-  if (typeof parsed !== 'object' || parsed === null) {
-    throw new Error('Parsed root package.json is not an object or is null.');
+  try {
+    const rootPkgContent = readFileSync(projectPkgPath, 'utf8')
+    const parsed = JSON.parse(rootPkgContent)
+    if (typeof parsed !== 'object' || parsed === null) {
+      throw new Error('Parsed package.json is not an object')
+    }
+    return parsed
+  } catch (error) {
+    logger.error('errors.readParseRootPackageJson', {
+      projectPkgPath: projectPkgPath,
+      errorMessage: (error && typeof error === 'object' && 'message' in error) ? error.message : String(error)
+    }, false) // Set exit to false, so it just logs and allows returning null
+    return null
   }
-  return parsed;
 }
 
 export default {
